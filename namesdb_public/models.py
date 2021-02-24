@@ -7,6 +7,7 @@ import sys
 
 from elasticsearch.exceptions import NotFoundError
 import elasticsearch_dsl as dsl
+logging.getLogger("elasticsearch").setLevel(logging.WARNING)
 
 from . import definitions
 
