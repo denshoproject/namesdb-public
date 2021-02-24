@@ -70,7 +70,6 @@ class Record(dsl.Document):
                 except dsl.exceptions.ValidationException:
                     err = ':'.join([field, data[field]])
                     record.errors.append(err)
-        record.assemble_fulltext()
         return record
     
     @staticmethod
@@ -89,7 +88,7 @@ class Record(dsl.Document):
                 setattr(record, field, _hitvalue(hit_d, field))
             record.assemble_fulltext()
             return record
-        record.assemble_fulltext()
+        record.assemble_fulltext(fieldnames)
         return None
      
     @staticmethod
@@ -107,18 +106,21 @@ class Record(dsl.Document):
             (x['key'], x['doc_count'])
             for x in response.aggregations['bucket']['buckets']
         ]
-        
-    def assemble_fulltext(self, fieldnames):
-        """Assembles single fulltext search field from all string fields
-        """
-        values = []
-        for fieldname in fieldnames:
-            value = getattr(self, fieldname, None)
-            if value:
-                if isinstance(value, str):
-                    value = value.lower()
-                values.append(value)
-        return ' '.join(values)
+
+
+def assemble_fulltext(record, fieldnames):
+    """Assembles single fulltext search field from all string fields
+    """
+    values = []
+    for fieldname in fieldnames:
+        value = getattr(record, fieldname, '')
+        if value:
+            if isinstance(value, datetime):
+                continue
+            elif isinstance(value, str):
+                value = value.lower()
+            values.append(value)
+    return ' '.join(values)
 
 
 FIELDS_PERSON = [
@@ -171,14 +173,18 @@ class Person(Record):
         return f'<Person {self.nr_id}>'
     
     @staticmethod
-    def from_dict(fieldnames, nr_id, data):
+    def from_dict(nr_id, data):
         """
         @param fieldnames: list
         @param nr_id: str
         @param data: dict
         @returns: Person
         """
-        return Record.from_dict(Person, fieldnames, nr_id, data)
+        record = Record.from_dict(
+            Person, FIELDS_PERSON, nr_id, data
+        )
+        assemble_fulltext(record, FIELDS_PERSON)
+        return record
     
     @staticmethod
     def from_hit(hit):
@@ -193,11 +199,6 @@ class Person(Record):
         """Returns unique values and counts for specified field.
         """
         return Record.field_values(Person, field, es, index)
-   
-    def assemble_fulltext(self):
-        """Assembles single fulltext search field from all string fields
-        """
-        return self.assemble_fulltext(FIELDS_PERSON)
 
 
 FIELDS_FARRECORD = [
@@ -259,14 +260,17 @@ class FarRecord(Record):
         return f'<FarRecord {self.far_record_id}>'
     
     @staticmethod
-    def from_dict(fieldnames, far_record_id, data):
+    def from_dict(far_record_id, data):
         """
-        @param fieldnames: list
         @param far_record_id: str
         @param data: dict
         @returns: FarRecord
         """
-        return Record.from_dict(FarRecord, fieldnames, far_record_id, data)
+        record = Record.from_dict(
+            FarRecord, FIELDS_FARRECORD, far_record_id, data
+        )
+        assemble_fulltext(record, FIELDS_FARRECORD)
+        return record
     
     @staticmethod
     def from_hit(hit):
@@ -281,11 +285,6 @@ class FarRecord(Record):
         """Returns unique values and counts for specified field.
         """
         return Record.field_values(FarRecord, field, es, index)
-    
-    def assemble_fulltext(self):
-        """Assembles single fulltext search field from all string fields
-        """
-        return self.assemble_fulltext(FIELDS_FARRECORD)
 
 
 FIELDS_WRARECORD = [
@@ -349,14 +348,18 @@ class WraRecord(Record):
         return f'<WraRecord {self.wra_record_id}>'
     
     @staticmethod
-    def from_dict(fieldnames, wra_record_id, data):
+    def from_dict(wra_record_id, data):
         """
         @param fieldnames: list
         @param wra_record_id: str
         @param data: dict
         @returns: WraRecord
         """
-        return Record.from_dict(WraRecord, fieldnames, wra_record_id, data)
+        record = Record.from_dict(
+            WraRecord, FIELDS_WRARECORD, wra_record_id, data
+        )
+        assemble_fulltext(record, FIELDS_WRARECORD)
+        return record
     
     @staticmethod
     def from_hit(hit):
@@ -371,8 +374,3 @@ class WraRecord(Record):
         """Returns unique values and counts for specified field.
         """
         return Record.field_values(WraRecord, field, es, index)
-    
-    def assemble_fulltext(self):
-        """Assembles single fulltext search field from all string fields
-        """
-        return self.assemble_fulltext(FIELDS_WRARECORD)
