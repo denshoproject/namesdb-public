@@ -12,6 +12,11 @@ logging.getLogger("elasticsearch").setLevel(logging.WARNING)
 from . import definitions
 
 PREFIX = 'names'
+DOCTYPES = [
+    f'{PREFIX}person',
+    f'{PREFIX}farrecord',
+    f'{PREFIX}wrarecord',
+]
 
 
 def _hitvalue(hit, field):
@@ -374,3 +379,16 @@ class WraRecord(Record):
         """Returns unique values and counts for specified field.
         """
         return Record.field_values(WraRecord, field, es, index)
+
+
+ELASTICSEARCH_CLASSES_BY_MODEL = {
+    'person': Person,
+    'farrecord': FarRecord, 'far': FarRecord,
+    'wrarecord': WraRecord, 'wra': WraRecord,
+}
+
+FIELDS_BY_MODEL = {
+    'person': FIELDS_PERSON,
+    'farrecord': FIELDS_FARRECORD, 'far': FIELDS_FARRECORD,
+    'wrarecord': FIELDS_WRARECORD, 'wra': FIELDS_WRARECORD,
+}
