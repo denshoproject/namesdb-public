@@ -10,6 +10,8 @@ import elasticsearch_dsl as dsl
 
 from . import definitions
 
+PREFIX = 'names'
+
 
 def _hitvalue(hit, field):
     """Extract list-wrapped values from their lists.
@@ -161,6 +163,9 @@ class Person(Record):
     #timestamp                     = dsl.DateTime()
     #facility = models.ManyToManyField(Facility, through='PersonFacility')
     
+    class Index:
+        name = f'{PREFIX}person'
+    
     def __repr__(self):
         return f'<Person {self.nr_id}>'
     
@@ -245,6 +250,9 @@ class FarRecord(Record):
     original_notes          = dsl.Keyword()
     person                  = dsl.Keyword()
     #timestamp               = dsl.DateTime()
+    
+    class Index:
+        name = f'{PREFIX}farrecord'
     
     def __repr__(self):
         return f'<FarRecord {self.far_record_id}>'
@@ -332,6 +340,9 @@ class WraRecord(Record):
     wra_filenumber    = dsl.Keyword()
     person            = dsl.Keyword()
     #timestamp         = dsl.DateTime()
+    
+    class Index:
+        name = f'{PREFIX}wrarecord'
     
     def __repr__(self):
         return f'<WraRecord {self.wra_record_id}>'
