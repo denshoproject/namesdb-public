@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from datetime import datetime
 import json
 import logging
@@ -8,15 +9,25 @@ import sys
 from elasticsearch.exceptions import NotFoundError
 import elasticsearch_dsl as dsl
 logging.getLogger("elasticsearch").setLevel(logging.WARNING)
+from rest_framework.exceptions import NotFound
 
 from . import definitions
+from . import docstore
 
-PREFIX = 'names'
-DOCTYPES = [
-    f'{PREFIX}person',
-    f'{PREFIX}farrecord',
-    f'{PREFIX}wrarecord',
+# see if cluster is available, quit with nice message if not
+docstore.Docstore().start_test()
+
+# set default hosts and index
+DOCSTORE = docstore.Docstore()
+
+MODELS = [
+    'person',
+    'farrecord',
+    'wrarecord',
 ]
+SEARCH_MODELS = MODELS
+DOCTYPES = [f'{docstore.INDEX_PREFIX}{model}' for model in MODELS]
+MODELS_DOCTYPES = {model: f'{docstore.INDEX_PREFIX}{model}' for model in MODELS}
 
 
 def _hitvalue(hit, field):
@@ -56,6 +67,7 @@ class Record(dsl.Document):
         @param data: dict
         @returns: Record
         """
+        #print(f'  from_dict({class_}, {fieldnames}, {record_id}, data)')
         # Elasticsearch 7 chokes on empty ('') dates so remove from rowd
         empty_dates = [
             fieldname for fieldname,val in data.items()
@@ -69,12 +81,16 @@ class Record(dsl.Document):
         })
         record.errors = []
         for field in fieldnames:
+            #print(f'    field {field}')
             if data.get(field):
                 try:
+                    #print(f'      data[field] {data[field]}')
                     setattr(record, field, data[field])
+                    #print('       ok')
                 except dsl.exceptions.ValidationException:
                     err = ':'.join([field, data[field]])
                     record.errors.append(err)
+                    #print(f'       err {err}')
         return record
     
     @staticmethod
@@ -112,6 +128,58 @@ class Record(dsl.Document):
             for x in response.aggregations['bucket']['buckets']
         ]
 
+    @staticmethod
+    def fields_enriched(record, label=False, description=False, list_fields=[]):
+        """Returns dict for each field with value and label etc for display
+        
+        # list fields and values in order
+        >>> for field in record.details.values:
+        >>>     print(field.label, field.value)
+        
+        # access individual values
+        >>> record.details.m_dataset.label
+        >>> record.details.m_dataset.value
+        
+        @param record: dict (not an elasticsearch_dsl..Hit)
+        @param label: boolean Get pretty label for fields.
+        @param description: boolean Get pretty description for fields. boolean
+        @param list_fields: list If non-blank get pretty values for these fields.
+        @returns: dict
+        """
+        details = []
+        model = record.__class__.Index.model
+        fieldnames = FIELDS_BY_MODEL[model]
+        for n,fieldname in enumerate(fieldnames):
+            try:
+                value = getattr(record, fieldname)
+            except AttributeError:
+                continue
+            field_def = definitions.FIELD_DEFINITIONS[model].get(fieldname, {})
+            display = field_def.get('display', None)
+            if value and display:
+                # display datetimes as dates
+                if isinstance(value, datetime):
+                    value = value.date()
+                data = {
+                    'field': fieldname,
+                    'label': fieldname,
+                    'description': '',
+                    'value_raw': value,
+                    'value': value,
+                }
+                if (not list_fields) or (fieldname in list_fields):
+                    # get pretty value from FIELD_DEFINITIONS
+                    choices = field_def.get('choices', {})
+                    if choices and choices.get(value, None):
+                        data['value'] = choices[value]
+                if label:
+                    data['label'] = field_def.get('label', fieldname)
+                if description:
+                    data['description'] = field_def.get('description', '')
+                item = (fieldname, data)
+                details.append(item)
+        return OrderedDict(details)
+
 
 def assemble_fulltext(record, fieldnames):
     """Assembles single fulltext search field from all string fields
@@ -120,10 +188,10 @@ def assemble_fulltext(record, fieldnames):
     for fieldname in fieldnames:
         value = getattr(record, fieldname, '')
         if value:
-            if isinstance(value, datetime):
-                continue
-            elif isinstance(value, str):
+            if isinstance(value, str):
                 value = value.lower()
+            else:
+                continue
             values.append(value)
     return ' '.join(values)
 
@@ -136,8 +204,44 @@ FIELDS_PERSON = [
     'alien_registration_no', 'gender', 'preexclusion_residence_city',
     'preexclusion_residence_state', 'postexclusion_residence_city',
     'postexclusion_residence_state', 'exclusion_order_title',
-    'exclusion_order_id', 'timestamp', 'facility',
+    'exclusion_order_id', 'timestamp',
+    'facilities', 'far_records', 'wra_records',
 ]
+
+INCLUDE_FIELDS_PERSON = [
+    'nr_id', 'family_name', 'given_name', 'given_name_alt', 'other_names',
+    'middle_name', 'prefix_name', 'suffix_name', 'jp_name', 'preferred_name',
+    'wra_family_no', 'wra_individual_no', 'alien_registration_no',
+    'preexclusion_residence_city', 'postexclusion_residence_city',
+    'exclusion_order_title',
+]
+
+AGG_FIELDS_PERSON = {
+    'birth_place': 'birth_place',
+    'citizenship': 'citizenship',
+    'gender': 'gender',
+    'preexclusion_residence_city': 'preexclusion_residence_city',
+    'preexclusion_residence_state': 'preexclusion_residence_state',
+    'postexclusion_residence_city': 'postexclusion_residence_city',
+    'postexclusion_residence_state': 'postexclusion_residence_state',
+}
+
+class ListFacility(dsl.InnerDoc):
+    person_nr_id = dsl.Keyword()
+    facility_id = dsl.Keyword()
+    entry_date = dsl.Date()
+    exit_date = dsl.Date()
+
+class ListFarRecord(dsl.InnerDoc):
+    far_record_id = dsl.Keyword()
+    last_name = dsl.Keyword()
+    first_name = dsl.Keyword()
+
+class ListWraRecord(dsl.InnerDoc):
+    wra_record_id = dsl.Keyword()
+    lastname = dsl.Keyword()
+    firstname = dsl.Keyword()
+    middleinitial = dsl.Keyword()
 
 class Person(Record):
     """Person record model
@@ -168,14 +272,22 @@ class Person(Record):
     postexclusion_residence_state = dsl.Keyword()
     exclusion_order_title         = dsl.Keyword()
     exclusion_order_id            = dsl.Keyword()
-    #timestamp                     = dsl.DateTime()
-    #facility = models.ManyToManyField(Facility, through='PersonFacility')
+    timestamp                     = dsl.Date()
+    facilities                    = dsl.Nested(ListFacility)
+    far_records                   = dsl.Nested(ListFarRecord)
+    wra_records                   = dsl.Nested(ListWraRecord)
     
     class Index:
-        name = f'{PREFIX}person'
+        model = 'person'
+        name = f'{docstore.INDEX_PREFIX}person'
     
     def __repr__(self):
         return f'<Person {self.nr_id}>'
+    
+    @staticmethod
+    def get(oid, request):
+        """Get record for web app"""
+        return docstore_object(request, 'person', oid)
     
     @staticmethod
     def from_dict(nr_id, data):
@@ -198,6 +310,10 @@ class Person(Record):
         @returns: Person
         """
         return Record.from_hit(Person, hit)
+
+    @staticmethod
+    def from_id(nr_id):
+        return Person.get(nr_id)
      
     @staticmethod
     def field_values(field, es=None, index=None):
@@ -218,6 +334,37 @@ FIELDS_FARRECORD = [
     'camp_address_barracks', 'camp_address_room', 'reference', 'original_notes',
     'person', 'timestamp',
 ]
+
+INCLUDE_FIELDS_FARRECORD = [
+    'far_record_id', 'family_number', 'far_line_id', 'last_name', 'first_name',
+    'other_names', 'date_of_birth', 'original_notes',
+    ]
+
+AGG_FIELDS_FARRECORD = {
+    'facility': 'facility',
+    'sex': 'sex',
+    'marital_status': 'marital_status',
+    'citizenship': 'citizenship',
+    'alien_registration': 'alien_registration',
+    'entry_type_code': 'entry_type_code',
+    'entry_type': 'entry_type',
+    'entry_category': 'entry_category',
+    'entry_facility': 'entry_facility',
+    'pre_evacuation_state': 'pre_evacuation_state',
+    'departure_type_code': 'departure_type_code',
+    'departure_type': 'departure_type',
+    'departure_category': 'departure_category',
+    'departure_facility': 'departure_facility',
+    'departure_state': 'departure_state',
+    'camp_address_original': 'camp_address_original',
+    'camp_address_block': 'camp_address_block',
+    'camp_address_barracks': 'camp_address_barracks',
+    'camp_address_room': 'camp_address_room',
+}
+
+class NestedPerson(dsl.InnerDoc):
+    nr_id = dsl.Keyword()
+    preferred_name = dsl.Keyword()
 
 class FarRecord(Record):
     """FarRecord model
@@ -255,14 +402,20 @@ class FarRecord(Record):
     camp_address_room       = dsl.Keyword()
     reference               = dsl.Keyword()
     original_notes          = dsl.Keyword()
-    person                  = dsl.Keyword()
-    #timestamp               = dsl.DateTime()
+    person                  = dsl.Nested(NestedPerson)
+    timestamp               = dsl.Date()
     
     class Index:
-        name = f'{PREFIX}farrecord'
+        model = 'farrecord'
+        name = f'{docstore.INDEX_PREFIX}farrecord'
     
     def __repr__(self):
         return f'<FarRecord {self.far_record_id}>'
+    
+    @staticmethod
+    def get(oid, request):
+        """Get record for web app"""
+        return docstore_object(request, 'farrecord', oid)
     
     @staticmethod
     def from_dict(far_record_id, data):
@@ -304,6 +457,41 @@ FIELDS_WRARECORD = [
     'timestamp',
 ]
 
+INCLUDE_FIELDS_WRARECORD = [
+    'wra_record_id', 'lastname', 'firstname', 'middleinitial',
+    'familyno', 'individualno',
+]
+
+AGG_FIELDS_WRARECORD = {
+    'facility': 'facility',
+    'birthyear': 'birthyear',
+    'gender': 'gender',
+    'originalstate': 'originalstate',
+    'assemblycenter': 'assemblycenter',
+    'birthcountry': 'birthcountry',
+    'fatheroccupus': 'fatheroccupus',
+    'fatheroccupabr': 'fatheroccupabr',
+    'yearsschooljapan': 'yearsschooljapan',
+    'gradejapan': 'gradejapan',
+    'schooldegree': 'schooldegree',
+    'yearofusarrival': 'yearofusarrival',
+    'timeinjapan': 'timeinjapan',
+    'ageinjapan': 'ageinjapan',
+    'militaryservice': 'militaryservice',
+    'martitalstatus': 'martitalstatus',
+    'ethnicity': 'ethnicity',
+    'birthplace': 'birthplace',
+    'citizenshipstatus': 'citizenshipstatus',
+    'highestgrade': 'highestgrade',
+    'language': 'language',
+    'religion': 'religion',
+    'occupqual1': 'occupqual1',
+    'occupqual2': 'occupqual2',
+    'occupqual3': 'occupqual3',
+    'occupotn1': 'occupotn1',
+    'occupotn2': 'occupotn2',
+}
+
 class WraRecord(Record):
     """WraRecord model
     """
@@ -343,15 +531,21 @@ class WraRecord(Record):
     occupotn1         = dsl.Keyword()
     occupotn2         = dsl.Keyword()
     wra_filenumber    = dsl.Keyword()
-    person            = dsl.Keyword()
-    #timestamp         = dsl.DateTime()
+    person            = dsl.Nested(NestedPerson)
+    timestamp         = dsl.Date()
     
     class Index:
-        name = f'{PREFIX}wrarecord'
+        model = 'wrarecord'
+        name = f'{docstore.INDEX_PREFIX}wrarecord'
     
     def __repr__(self):
         return f'<WraRecord {self.wra_record_id}>'
     
+    @staticmethod
+    def get(oid, request):
+        """Get record for web app"""
+        return docstore_object(request, 'wrarecord', oid)
+
     @staticmethod
     def from_dict(wra_record_id, data):
         """
@@ -381,14 +575,65 @@ class WraRecord(Record):
         return Record.field_values(WraRecord, field, es, index)
 
 
+DOCTYPES_BY_MODEL = {
+    'person':    f'{docstore.INDEX_PREFIX}person',
+    'farrecord': f'{docstore.INDEX_PREFIX}farrecord',
+    'wrarecord': f'{docstore.INDEX_PREFIX}wrarecord',
+}
+
 ELASTICSEARCH_CLASSES_BY_MODEL = {
     'person': Person,
-    'farrecord': FarRecord, 'far': FarRecord,
-    'wrarecord': WraRecord, 'wra': WraRecord,
+    'farrecord': FarRecord,
+    'wrarecord': WraRecord,
 }
 
 FIELDS_BY_MODEL = {
     'person': FIELDS_PERSON,
-    'farrecord': FIELDS_FARRECORD, 'far': FIELDS_FARRECORD,
-    'wrarecord': FIELDS_WRARECORD, 'wra': FIELDS_WRARECORD,
+    'farrecord': FIELDS_FARRECORD,
+    'wrarecord': FIELDS_WRARECORD,
 }
+
+#SEARCH_INCLUDE_FIELDS = list(set(
+#    INCLUDE_FIELDS_PERSON + INCLUDE_FIELDS_FARRECORD + INCLUDE_FIELDS_WRARECORD
+#))
+SEARCH_INCLUDE_FIELDS = ['nr_id', 'far_record_id', 'wra_record_id', 'id', 'last_name', 'first_name']
+
+SEARCH_AGG_FIELDS = {}
+for fieldset in [AGG_FIELDS_PERSON, AGG_FIELDS_FARRECORD, AGG_FIELDS_WRARECORD]:
+    for key,val in fieldset.items():
+        SEARCH_AGG_FIELDS[key] = val
+
+
+def docstore_object(request, model, oid):
+    data = DOCSTORE.es.get(
+        index=MODELS_DOCTYPES[model],
+        id=oid
+    )
+    return format_object_detail(data, request)
+
+def format_object_detail(document, request, listitem=False):
+    """Formats repository objects, adds list URLs,
+    """
+    if document.get('_source'):
+        oid = document['_id']
+        model = document['_index']
+        document = document['_source']
+    else:
+        oid = document.pop('id')
+        model = document.pop('model')
+    model = model.replace(docstore.INDEX_PREFIX, '')
+    
+    d = OrderedDict()
+    d['id'] = oid
+    d['model'] = model
+    if document.get('index'):
+        d['index'] = document.pop('index')
+    d['links'] = OrderedDict()
+    d['title'] = ''
+    d['description'] = ''
+
+    for field in FIELDS_BY_MODEL[model]:
+        if document.get(field):
+            d[field] = document.pop(field)
+    
+    return d
