@@ -1,0 +1,55 @@
+{% extends "ui/base.html" %}
+{% load names_tags %}
+
+{% block title %}{{ record.lastname }}, {{ record.firstname }} | Names{% endblock %}
+
+{% block breadcrumbs %}{{ block.super }}
+<li><a href="{% url "names-index" %}">Names Registry</a></li>
+<li><a href="{% url "namesdb-wra" %}">WRA Form 26</a></li>
+<li>{{ record.lastname }}, {{ record.firstname }}</li>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<section class="container">
+
+
+  <div class="white-row">
+
+    <h2>
+      <strong>{{ record.lastname }}, {{ record.firstname }}</strong>
+      <small class="font300">{{ record.far_record_id }}</small>
+    </h2>
+
+    <div class="row">
+      <div class="col-md-9 col-md-offset-1">
+
+        <div class="table-responsive">
+
+<table class="table">
+  <tbody>
+
+{% for field in record.fields %}
+    <tr>
+      <td>
+<!-- {{ field.field }} -->
+<a href="#" data-container="body" data-toggle="tooltip" data-placement="bottom" data-original-title="{{ field.description }}">
+{% if field.label %}{{ field.label }}{% else %}{{ field.field }}{% endif %}
+</a>
+      </td>
+      <td>
+{{ field.value }}
+      </td>
+    </tr>
+{% endfor %}
+
+  </tbody>
+</table>
+
+        </div><!--end table-responsive-->
+
+      </div>
+    </div>
+  </div>
+
+</section><!-- .container -->
+{% endblock content %}
