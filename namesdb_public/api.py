@@ -48,6 +48,18 @@ def _list(request, data):
         data['next'] = 'http://%s%s%s' % (host, path, data['next'])
     return Response(data)
 
+@api_view(['GET'])
+def persons(request, format=None):
+    objects = models.Person.objects(request, sort='id')
+
+@api_view(['GET'])
+def farrecords(request, format=None):
+    assert False
+
+@api_view(['GET'])
+def wrarecords(request, format=None):
+    assert False
+
 def _detail(request, data):
     """Common function for detail views.
     """

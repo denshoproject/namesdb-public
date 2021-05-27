@@ -290,6 +290,10 @@ class Person(Record):
         return docstore_object(request, 'person', oid)
     
     @staticmethod
+    def objects(request, sort):
+        return docstore_objects(request, 'person', sort)
+    
+    @staticmethod
     def from_dict(nr_id, data):
         """
         @param fieldnames: list
@@ -610,6 +614,10 @@ def docstore_object(request, model, oid):
         id=oid
     )
     return format_object_detail(data, request)
+
+def docstore_objects(request, model, sort):
+    data = DOCSTORE.search(doctypes=[model], sort='id')
+    assert 0
 
 def format_object_detail(document, request, listitem=False):
     """Formats repository objects, adds list URLs,

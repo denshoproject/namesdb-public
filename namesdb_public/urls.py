@@ -17,6 +17,9 @@ urlpatterns = [
         r'^api/1.0/wrarecords/(?P<object_id>[0-9a-zA-Z_:-]+)',
         api.wrarecord, name='namesdb-api-wrarecord'
     ),
+    path('api/1.0/persons/', api.persons, name='namesdb-api-persons'),
+    path('api/1.0/farrecords/', api.farrecords, name='namesdb-api-farrecords'),
+    path('api/1.0/wrarecords/', api.wrarecords, name='namesdb-api-wrarecords'),
     path('api/1.0/', api.Search.as_view(), name='namesdb-api-search'),
     
     path('search/', views.search_ui, name='namesdb-search'),
@@ -32,8 +35,8 @@ urlpatterns = [
         r'^wrarecords/(?P<object_id>[0-9a-zA-Z_:-]+)',
         views.wrarecord, name='namesdb-wrarecord'
     ),
-    path('person', views.person, name='namesdb-person'),
-    path('far', views.far, name='namesdb-far'),
-    path('wra', views.wra, name='namesdb-wra'),
+    path('persons/', views.persons, name='namesdb-persons'),
+    path('farrecords/', views.farrecords, name='namesdb-farrecords'),
+    path('wrarecords/', views.wrarecords, name='namesdb-wrarecords'),
     path('', views.search_ui, name='namesdb-index'),
 ]

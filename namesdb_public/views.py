@@ -86,13 +86,13 @@ def index(request, template_name='names/index.html'):
         'paginator': paginator,
     })
 
-def person(request, template_name='names/person.html'):
+def persons(request, template_name='names/persons.html'):
     assert False
 
-def far(request, template_name='names/far.html'):
+def farrecords(request, template_name='names/farrecords.html'):
     assert False
 
-def wra(request, template_name='names/wra.html'):
+def wrarecords(request, template_name='names/wrarecords.html'):
     assert False
 
 def search_ui(request):
