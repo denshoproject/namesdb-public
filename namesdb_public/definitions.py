@@ -48,517 +48,145 @@ DATASETS = {
     'wra-master': FIELDS_WRA,
 }
 
-FIELD_DEFINITIONS = OrderedDict()
-FIELD_DEFINITIONS['m_dataset'] = {
-    'label': "Data source",
-    'description': "Parent dataset of the record",
+FIELD_DEFINITIONS = {}
+FIELD_DEFINITIONS['person'] = {}
+FIELD_DEFINITIONS['person']['nr_id'] = {
+    'label': "Person ID",
+    'description': "Names Registry Person identifier",
     'type': 'string',
     'required': True,
     'display': True,
-    'sample': 'far-ancestry',
-    'notes': 'far-ancestry|far-poston|far-minidoka|far-manzanar|wra',
-    'choices': OrderedDict([
-        ('far-ancestry', 'FAR Ancestry'),
-        ('far-manzanar', 'FAR Manzanar'),
-        ('far-minidoka', 'FAR Minidoka'),
-        ('far-poston', 'FAR Poston'),
-        ('wra-master', 'WRA Form 26'),
-    ]),
+    'sample': 'SAMPLE GOES HERE',
+    'notes': 'NOTES GO HERE',
 }
-FIELD_DEFINITIONS['m_pseudoid'] = {
-    'label': "Names ID",
-    'description': "Names Registry identifier",
-    'type': 'string',
-    'required': True,
-    'display': True,
-    'sample': '2-poston_akiyama_1888_kiyomi',
-    'notes': "Derived from m_camp, m_lastname, m_birthyear, m_firstname",
-}
-FIELD_DEFINITIONS['m_camp'] = {
-    'label': 'Camp',
-    'description': "Primary concentration camp. Uses Densho shared controlled vocabulary.",
-    'type': 'string',
-    'required': True,
-    'display': True,
-    'sample': '2-poston',
-    'choices': OrderedDict([
-        ('1-topaz', 'Topaz'),
-        ('2-poston', 'Poston'),
-        ('3-gilariver', 'Gila River'),
-        ('4-amache', 'Amache'),
-        ('5-heartmountain', 'Heart Mountain'),
-        ('6-jerome', 'Jerome'),
-        ('7-manzanar', 'Manzanar'),
-        ('8-minidoka', 'Minidoka'),
-        ('9-rohwer', 'Rohwer'),
-        ('10-tulelake', 'Tule Lake'),
-    ]),
-    'notes': '',
-}
-FIELD_DEFINITIONS['m_lastname'] = {
-    'label': 'Last Name',
-    'description': 'Last name',
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': 'Miura',
-    'notes': '',
-}
-FIELD_DEFINITIONS['m_firstname'] = {
-    'label': 'First Name',
-    'description': 'First name',
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': 'George',
-    'notes': '',
-}
-FIELD_DEFINITIONS['m_birthyear'] = {
-    'label': 'Birth Year',
-    'description': 'Birth year',
-    'type': 'number',
-    'required': False,
-    'display': True,
-    'sample': '1921',
-    'notes': '',
-}
-FIELD_DEFINITIONS['m_gender'] = {
-    'label': 'Gender',
-    'description': 'Gender',
-    'type': 'string',
-    'required': True,
-    'display': True,
-    'sample': 'M',
-    'choices': OrderedDict([
-        ('F', 'Female'),
-        ('M', 'Male'),
-    ]),
-    'notes': '',
-}
-FIELD_DEFINITIONS['m_originalstate'] = {
-    'label': 'Home State',
-    'description': "State of residence at time of removal",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': 'UT',
-    'choices': OrderedDict([]),
-    'notes': "Use two-digit code for US states. Not included in far-ancestry data",
-}
-FIELD_DEFINITIONS['m_familyno'] = {
-    'label': 'WRA Family No.',
-    'description': "WRA-assigned family ID (Form 26 - Item 14)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '34339',
-    'notes': "Not included in far-ancestry data",
-}
-FIELD_DEFINITIONS['m_individualno'] = {
-    'label': 'WRA Individual No.',
-    'description': "WRA-assigned individual ID (Form 26 - Item 14)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '34339B',
-    'notes': "Not included in far-ancestry data",
-}
-FIELD_DEFINITIONS['m_altfamilyid'] = {
-    'label': "Alternate Family ID",
-    'description': "Alternate family identifier. Supports Ancestry dataset.",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['m_altindividualid'] = {
-    'label': "Alternate Individual ID",
-    'description': "Alternate individual identifier. Supports Ancestry dataset.",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['m_ddrreference'] = {
-    'label': "DDR Reference",
-    'description': "Reference in DDR",
-    'type': 'string',
-    'required': False,
-    'display': False,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['m_notes'] = {
-    'label': "Notes",
-    'description': 'Notes',
-    'type': 'string',
-    'required': False,
-    'display': False,
-    'sample': '',
-    'notes': '',
-}
+FIELD_DEFINITIONS['person']['family_name']                   = {'label': 'Last Name',                 'description': 'Preferred family or last name',}
+FIELD_DEFINITIONS['person']['given_name']                    = {'label': 'First Name',                'description': 'Preferred given or first name',}
+FIELD_DEFINITIONS['person']['given_name_alt']                = {'label': 'Alternative First Names',   'description': 'List of alternative first names',}
+FIELD_DEFINITIONS['person']['other_names']                   = {'label': 'Other Names',               'description': 'List of other names',}
+FIELD_DEFINITIONS['person']['middle_name']                   = {'label': 'Middle Name',               'description': 'Middle name or initial',}
+FIELD_DEFINITIONS['person']['prefix_name']                   = {'label': 'Name Prefix',               'description': 'Professional/titular prefix. E.g., "Dr.", "Rev."',}
+FIELD_DEFINITIONS['person']['suffix_name']                   = {'label': 'Name Suffix',               'description': 'Name suffix. E.g., "Jr.", "Esq."',}
+FIELD_DEFINITIONS['person']['jp_name']                       = {'label': 'Japanese Name',             'description': 'Name in kana',}
+FIELD_DEFINITIONS['person']['preferred_name']                = {'label': 'Preferred Full Name',       'description': 'Preferred form of full name for display',}
+FIELD_DEFINITIONS['person']['birth_date']                    = {'label': 'Date of Birth',             'description': 'Full birthdate',}
+FIELD_DEFINITIONS['person']['birth_date_text']               = {'label': 'Birthdate Text',            'description': 'Text representation of birthdate, if necessary',}
+FIELD_DEFINITIONS['person']['birth_place']                   = {'label': 'Birthplace',                'description': 'Place of birth',}
+FIELD_DEFINITIONS['person']['death_date']                    = {'label': 'Date of Death',             'description': 'Date of death',}
+FIELD_DEFINITIONS['person']['death_date_text']               = {'label': 'Death Date Text',           'description': 'Text representation of death date, if necessary',}
+FIELD_DEFINITIONS['person']['wra_family_no']                 = {'label': 'Family Number',             'description': 'WRA-assigned family number',}
+FIELD_DEFINITIONS['person']['wra_individual_no']             = {'label': 'Individual Number',         'description': 'WRA-assigned individual number',}
+FIELD_DEFINITIONS['person']['citizenship']                   = {'label': 'Country of Citizenship',    'description': 'Country of citizenship',}
+FIELD_DEFINITIONS['person']['alien_registration_no']         = {'label': 'Alien Registration Number', 'description': 'INS-assigned alien registration number',}
+FIELD_DEFINITIONS['person']['gender']                        = {'label': 'Gender',                    'description': 'Gender',}
+FIELD_DEFINITIONS['person']['preexclusion_residence_city']   = {'label': 'Pre-exclusion City',        'description': 'Last city of residence prior to exclusion',}
+FIELD_DEFINITIONS['person']['preexclusion_residence_state']  = {'label': 'Pre-exclusion State',       'description': 'Last state of residence prior to exclusion',}
+FIELD_DEFINITIONS['person']['postexclusion_residence_city']  = {'label': 'Post-detention City',       'description': 'City of residence immediately following detention',}
+FIELD_DEFINITIONS['person']['postexclusion_residence_state'] = {'label': 'Post-detention State',      'description': 'State of residence immediately following detention',}
+FIELD_DEFINITIONS['person']['exclusion_order_title']         = {'label': 'Exclusion Order',           'description': 'Name of U.S. Army exclusion order',}
+FIELD_DEFINITIONS['person']['exclusion_order_id']            = {'label': 'Exclusion Order ID',        'description': 'Order ID ',}
+# facility
+# timestamp
 
-FIELD_DEFINITIONS['f_originalcity'] = {
-    'label': "Home City",
-    'description': "City of residence at time of removal",
+FIELD_DEFINITIONS['farrecord'] = {}
+FIELD_DEFINITIONS['farrecord']['far_record_id'] = {
+    'label': "FAR Record ID",
+    'description': "Derived from FAR ledger id + line id ('original_order'",
     'type': 'string',
-    'required': False,
+    'required': True,
     'display': True,
-    'sample': '',
-    'notes': '',
+    'sample': 'SAMPLE GOES HERE',
+    'notes': 'NOTES GO HERE',
 }
-FIELD_DEFINITIONS['f_othernames'] = {
-    'label': "Alternate Names",
-    'description': "Alternate and middle names",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['f_maritalstatus'] = {
-    'label': "Marital Status",
-    'description': "Marital status",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['f_citizenship'] = {
-    'label': "Citizenship Status",
-    'description': "Citizenship status",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['f_alienregistration'] = {
-    'label': "Alien Registration",
-    'description': "Alien registration status and number",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['f_entrytype'] = {
-    'label': "Entry Type",
-    'description': "Type of entry into camp",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['f_entrydate'] = {
-    'label': "Entry Date",
-    'description': "Date of entry into camp",
-    'type': 'date',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['f_departuretype'] = {
-    'label': "Departure Type",
-    'description': "Type of departure/leave clearance from camp",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['f_departuredate'] = {
-    'label': "Departure Date",
-    'description': "Date of departure from camp",
-    'type': 'date',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['f_destinationstate'] = {
-    'label': "Destination State",
-    'description': "Post-camp destination state",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['f_destinationcity'] = {
-    'label': "Destination City",
-    'description': "Post-camp destination city",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
-FIELD_DEFINITIONS['f_campaddress'] = {
-    'label': "Camp Address",
-    'description': "Address in camp facility. Typically, block-barrack-apartment.",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Not included in Ancestry or Minidoka datasets.",
-}
-FIELD_DEFINITIONS['f_farlineid'] = {
-    'label': "FAR Line No.",
-    'description': "Line number of the record in the original FAR ledger",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': '',
-}
+FIELD_DEFINITIONS['farrecord']['facility']                      = {'label': 'Facility',                  'description': 'Identifier of WRA facility'}
+FIELD_DEFINITIONS['farrecord']['original_order']                = {'label': 'Original Order',            'description': 'Absolute line number in physical FAR ledger'}
+FIELD_DEFINITIONS['farrecord']['family_number']                 = {'label': 'WRA Family Number',         'description': 'WRA-assigned family number'}
+FIELD_DEFINITIONS['farrecord']['far_line_id']                   = {'label': 'FAR Line Number',           'description': 'Line number in FAR ledger, recorded in original ledger'}
+FIELD_DEFINITIONS['farrecord']['last_name']                     = {'label': 'Last Name',                 'description': 'Last name corrected by transcription team'}
+FIELD_DEFINITIONS['farrecord']['first_name']                    = {'label': 'First Name',                'description': 'First name corrected by transcription team'}
+FIELD_DEFINITIONS['farrecord']['other_names']                   = {'label': 'Other Names',               'description': 'Alternate first names'}
+FIELD_DEFINITIONS['farrecord']['date_of_birth']                 = {'label': 'Birthdate',                 'description': 'Full birth date'}
+FIELD_DEFINITIONS['farrecord']['year_of_birth']                 = {'label': 'Year of Birth',             'description': 'Year of birth'}
+FIELD_DEFINITIONS['farrecord']['sex']                           = {'label': 'Gender',                    'description': 'Gender identifier'}
+FIELD_DEFINITIONS['farrecord']['marital_status']                = {'label': 'Marital Status',            'description': 'Marital status'}
+FIELD_DEFINITIONS['farrecord']['citizenship']                   = {'label': 'Citizenship Status',        'description': 'Citizenship status'}
+FIELD_DEFINITIONS['farrecord']['alien_registration']            = {'label': 'Alien Registration Number', 'description': 'INS-assigned Alien Registration number'}
+FIELD_DEFINITIONS['farrecord']['entry_type_code']               = {'label': 'Entry Type (Coded)',        'description': 'Coded type of original admission and assignment to facility'}
+FIELD_DEFINITIONS['farrecord']['entry_type']                    = {'label': 'Entry Type',                'description': 'Normalized type of original entry'}
+FIELD_DEFINITIONS['farrecord']['entry_category']                = {'label': 'Entry Category',            'description': 'Category of entry type; assigned by Densho'}
+FIELD_DEFINITIONS['farrecord']['entry_facility']                = {'label': 'Entry Facility',            'description': 'Last facility prior to entry'}
+FIELD_DEFINITIONS['farrecord']['pre_evacuation_address']        = {'label': 'Pre-exclusion Address',     'description': 'Address at time of removal; city and state'}
+FIELD_DEFINITIONS['farrecord']['pre_evacuation_state']          = {'label': 'Pre-exclusion State',       'description': 'Address at time of removal, state-only'}
+FIELD_DEFINITIONS['farrecord']['date_of_original_entry']        = {'label': 'Entry Date',                'description': 'Date of arrival at facility'}
+FIELD_DEFINITIONS['farrecord']['departure_type_code']           = {'label': 'Departure Type (Coded)',    'description': 'Coded type of leave or reason for departure from facility'}
+FIELD_DEFINITIONS['farrecord']['departure_type']                = {'label': 'Departure Type',            'description': 'Normalized type of final departure'}
+FIELD_DEFINITIONS['farrecord']['departure_category']            = {'label': 'Departure Category',        'description': 'Category of departure type'}
+FIELD_DEFINITIONS['farrecord']['departure_facility']            = {'label': 'Departure Facility',        'description': 'Departure facility, if applicable'}
+FIELD_DEFINITIONS['farrecord']['departure_date']                = {'label': 'Departure Date',            'description': 'Date of departure from facility'}
+FIELD_DEFINITIONS['farrecord']['departure_state']               = {'label': 'Departure Destination',     'description': 'Destination after departure; state-only'}
+FIELD_DEFINITIONS['farrecord']['camp_address_original']         = {'label': 'Camp Address',              'description': 'Physical address in camp in the form, "Block-Barrack-Room"'}
+FIELD_DEFINITIONS['farrecord']['camp_address_block']            = {'label': 'Camp Address Block',        'description': 'Block identifier of camp address'}
+FIELD_DEFINITIONS['farrecord']['camp_address_barracks']         = {'label': 'Camp Address Barrack',      'description': 'Barrack identifier of camp address'}
+FIELD_DEFINITIONS['farrecord']['camp_address_room']             = {'label': 'Camp Address Room',         'description': 'Room identifier of camp address'}
+FIELD_DEFINITIONS['farrecord']['reference']                     = {'label': 'Internal FAR Reference',    'description': 'Pointer to another row in the roster; page number in source pdf and the original order inthe consolidated roster for the camp'}
+FIELD_DEFINITIONS['farrecord']['original_notes']                = {'label': 'Original Notes', 'description': 'Notes from original statistics section recorder, often a reference to another name in the roster'}
+#person
+#timestamp
 
-FIELD_DEFINITIONS['w_assemblycenter'] = {
-    'label': "Assembly Center",
-    'description': "Assembly Center. If individual went directly or was born in camp, code \"0\" or \"none\" is used. (Form 26 - Item 3)",
+FIELD_DEFINITIONS['wrarecord'] = {}
+FIELD_DEFINITIONS['wrarecord']['wra_record_id'] = {
+    'label': "WRA Form 26 ID",
+    'description': 'Unique identifier; absolute row in original RG210.JAPAN.WRA26 datafile',
     'type': 'string',
-    'required': False,
+    'required': True,
     'display': True,
-    'sample': '',
-    'notes': 'Original: Assem Center',
+    'sample': 'SAMPLE GOES HERE',
+    'notes': 'NOTES GO HERE',
 }
-FIELD_DEFINITIONS['w_originaladdress'] = {
-    'label': 'Home Address',
-    'description': "Residence at time of removal. Uses US Census location code list. (Form 26 - Item 4)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Prev Address",
-}
-FIELD_DEFINITIONS['w_birthcountry'] = {
-    'label': "Birth Countries of Parents",
-    'description': "Country of birth of each parent. Selected from code list. (Form 26 - Item 5)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original:Birth Country",
-}
-FIELD_DEFINITIONS['w_fatheroccup'] = {
-    'label': "Father's US Occupation",
-    'description': "Father's primary occupation in the US. Based on US Employment Service Code list. (Form 26 - Item 5a)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Father Occ US",
-}
-FIELD_DEFINITIONS['w_fatheroccupcat'] = {
-    'label': "Father's Occupation Abroad",
-    'description': "Father's primary occupation outside the US, if applicable. Based on US Employment Service Code list. (Form 26 - Item 5a)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original:Father Occ Abr",
-}
-FIELD_DEFINITIONS['w_yearsschooljapan'] = {
-    'label': "Years of School Japan",
-    'description': "Total number of years of schooling in Japan (Form 26 - Item 7)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Yrs School Jpn",
-}
-FIELD_DEFINITIONS['w_gradejapan'] = {
-    'label': "Schooling in Japan",
-    'description': "Description of school years spent in Japan (Form 26 - Item 7)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Grade In Japan",
-}
-FIELD_DEFINITIONS['w_schooldegree'] = {
-    'label': "Degree Achieved",
-    'description': "Highest degree achieved in Japan or US (Form 26 - Item 7a)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: School Degree",
-}
-FIELD_DEFINITIONS['w_yearofusarrival'] = {
-    'label': "Year of US Arrival",
-    'description': "Year of first arrival in territorial US for foreign born only (Form 26 - Item 8)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Yr US Arrival",
-}
-FIELD_DEFINITIONS['w_timejapan'] = {
-    'label': "Time in Japan",
-    'description': "Total length of time in Japan (Form 26 - Item 8)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Time in Japan",
-}
-FIELD_DEFINITIONS['w_notimesjapan'] = {
-    'label': "Number of times in Japan",
-    'description': "Number of times in Japan (Form 26 - Item 8)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: No# Times Jpn",
-}
-FIELD_DEFINITIONS['w_agejapan'] = {
-    'label': "Age in Japan",
-    'description': "Age at time in Japan (Form 26 - Item 8)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original:Age In Japan",
-}
-FIELD_DEFINITIONS['w_militaryservice'] = {
-    'label': "Military Service/Public Assistance/Physical Defects",
-    'description': "Military/Naval service, public assistance and pensions, and physical defects. Form 26 recorded these four questions into a single code field. (Form 26 - Item 9, 10, 11 and 13)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Military, etc#",
-}
-FIELD_DEFINITIONS['w_maritalstatus'] = {
-    'label': "Marital Status",
-    'description': "Marital status (Form 26 - 18)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Sex & Marital",
-}
-FIELD_DEFINITIONS['w_ethnicity'] = {
-    'label': "Ethnicity",
-    'description': "Ethnicity of individual and spouse (Form 26 - 17)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Race",
-}
-FIELD_DEFINITIONS['w_birthplace'] = {
-    'label': "Birthplace",
-    'description': "Place of birth. Originally recorded with a two digit code based on US Census location list. (Form 26 - 21)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Birthplace",
-}
-FIELD_DEFINITIONS['w_citizenshipstatus'] = {
-    'label': "Citizenship and Japanese Language School",
-    'description': "Alien registration number, Social Security number and Japanese language school. Form 26 recorded these three questions into a single code field. (Form 26 - 22, 29a and 31)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Alien #, SS#",
-}
-FIELD_DEFINITIONS['w_highestgrade'] = {
-    'label': "Highest Grade",
-    'description': "Highest grade of school completed (Form 26 - Item 7a)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Highest Grade",
-}
-FIELD_DEFINITIONS['w_language'] = {
-    'label': "Languages",
-    'description': "Language abilities (Form 26 - Item 25)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Language",
-}
-FIELD_DEFINITIONS['w_religion'] = {
-    'label': "Religion",
-    'description': "For children under 12, this field was coded with the religion of the parents, unless they did not share the same religion in which case the field was left blank. Codes were selected from a controlled list. (Form 26 - Item 30)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Religion",
-}
-FIELD_DEFINITIONS['w_occupqual1'] = {
-    'label': "Occupation Primary",
-    'description': "Primary occupation. Based on US Employment Service Code list. (Form 26 - Item 27)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Occup Qual 1",
-}
-FIELD_DEFINITIONS['w_occupqual2'] = {
-    'label': "Occupation Secondary",
-    'description': "Secondary occupation. Based on US Employment Service Code list. (Form 26 - Item 27)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Occup Qual 2",
-}
-FIELD_DEFINITIONS['w_occupqual3'] = {
-    'label': "Occupation Tertiary",
-    'description': "Tertiary occupation. Based on US Employment Service Code list. (Form 26 - Item 27)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Occup Qual 3",
-}
-FIELD_DEFINITIONS['w_occuppotn1'] = {
-    'label': "Potential Occupation Primary",
-    'description': "Primary potential occupation. Used by WRA to determine occupational aptitude and placement. Based on US Employment Service Code list. (Form 26 - Item 27)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Occup Potn 1",
-}
-FIELD_DEFINITIONS['w_occuppotn2'] = {
-    'label': "Potential Occupation Secondary",
-    'description': "Secondary potential occupation. Used by WRA to determine occupational aptitude and placement. Based on US Employment Service Code list. (Form 26 - Item 27)",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: Occup Potn 2",
-}
-FIELD_DEFINITIONS['w_filenumber'] = {
-    'label': "File Number",
-    'description': "WRA file number",
-    'type': 'string',
-    'required': False,
-    'display': True,
-    'sample': '',
-    'notes': "Original: File Number",
-}
-FIELD_DEFINITIONS_NAMES = [key for key,item in FIELD_DEFINITIONS.items()]
-FIELD_DEFINITIONS_NAMES_STRINGS = [
-    key for key,item in FIELD_DEFINITIONS.items()
-    if item['type'] == 'string'
-]
-SEARCH_FIELDS = [
-    'm_dataset', 'm_pseudoid', 'm_camp', 'm_lastname', 'm_firstname', 'm_gender',
-    'm_birthyear', 'm_originalstate', 'm_familyno', 'm_individualno',
-    'fulltext',
-]
+FIELD_DEFINITIONS['wrarecord']['facility']                      = {'label': 'Facility identifier',       'description': 'Facility identifier'}
+FIELD_DEFINITIONS['wrarecord']['lastname']                      = {'label': 'Last name, truncated to 10 chars', 'description': 'Last name, truncated to 10 chars'}
+FIELD_DEFINITIONS['wrarecord']['firstname']                     = {'label': 'First name, truncated to 8 chars', 'description': 'First name, truncated to 8 chars'}
+FIELD_DEFINITIONS['wrarecord']['middleinitial']                 = {'label': 'Middle initial',            'description': 'Middle initial'}
+FIELD_DEFINITIONS['wrarecord']['birthyear']                     = {'label': 'Year of birth',             'description': 'Year of birth'}
+FIELD_DEFINITIONS['wrarecord']['gender']                        = {'label': 'Gender',                    'description': 'Gender'}
+FIELD_DEFINITIONS['wrarecord']['originalstate']                 = {'label': 'State of residence immediately prior to census', 'description': 'State of residence immediately prior to census'}
+FIELD_DEFINITIONS['wrarecord']['familyno']                      = {'label': 'WRA-assigned family identifier',                 'description': 'WRA-assigned family identifier'}
+FIELD_DEFINITIONS['wrarecord']['individualno']                  = {'label': 'Family identifier + alpha char by birthdate',    'description': 'Family identifier + alpha char by birthdate'}
+FIELD_DEFINITIONS['wrarecord']['notes']                         = {'label': 'Notes added by Densho during processing',        'description': 'Notes added by Densho during processing'}
+FIELD_DEFINITIONS['wrarecord']['assemblycenter']                = {'label': 'Assembly center prior to camp',                  'description': 'Assembly center prior to camp'}
+FIELD_DEFINITIONS['wrarecord']['originaladdress']               = {'label': 'County/city + state of pre-exclusion address (coded)', 'description': 'County/city + state of pre-exclusion address; coded by WRA'}
+FIELD_DEFINITIONS['wrarecord']['birthcountry']                  = {'label': 'Birth countries of father and mother (coded)',   'description': 'Birth countries of father and mother; coded by WRA'}
+FIELD_DEFINITIONS['wrarecord']['fatheroccupus']                 = {'label': "Father's occupation in the US (coded)",          'description': "Father's occupation in the US; coded by WRA"}
+FIELD_DEFINITIONS['wrarecord']['fatheroccupabr']                = {'label': "Father's occupation pre-emigration (coded)",     'description': "Father's occupation pre-emigration; coded by WRA"}
+FIELD_DEFINITIONS['wrarecord']['yearsschooljapan']              = {'label': 'Years of school attended in Japan',              'description': 'Years of school attended in Japan'}
+FIELD_DEFINITIONS['wrarecord']['gradejapan']                    = {'label': 'Highest grade of schooling attained in Japan (coded)', 'description': 'Highest grade of schooling attained in Japan; coded by WRA'}
+FIELD_DEFINITIONS['wrarecord']['schooldegree']                  = {'label': 'Highest educational degree attained (coded)',    'description': 'Highest educational degree attained; coded by WRA'}
+FIELD_DEFINITIONS['wrarecord']['yearofusarrival']               = {'label': 'Year of immigration to US, if applicable',       'description': 'Year of immigration to US, if applicable'}
+FIELD_DEFINITIONS['wrarecord']['timeinjapan']                   = {'label': 'Time in Japan',                                  'description': 'Description of time in Japan'}
+FIELD_DEFINITIONS['wrarecord']['ageinjapan']                    = {'label': 'Oldest age visiting or living in Japan',         'description': 'Age while visiting or living in Japan'}
+FIELD_DEFINITIONS['wrarecord']['militaryservice']               = {'label': 'Military service, pensions and disabilities',    'description': 'Military service, public assistance status and major disabilities'}
+FIELD_DEFINITIONS['wrarecord']['martitalstatus']                = {'label': 'Marital status',            'description': 'Marital status'}
+FIELD_DEFINITIONS['wrarecord']['ethnicity']                     = {'label': 'Ethnicity',                 'description': 'Ethnicity'}
+FIELD_DEFINITIONS['wrarecord']['birthplace']                    = {'label': 'Birthplace',                'description': 'Birthplace'}
+FIELD_DEFINITIONS['wrarecord']['citizenshipstatus']             = {'label': 'Citizenship status',        'description': 'Citizenship status'}
+FIELD_DEFINITIONS['wrarecord']['highestgrade']                  = {'label': 'Highest degree achieved',   'description': 'Highest degree achieved'}
+FIELD_DEFINITIONS['wrarecord']['language']                      = {'label': 'Languages spoken',          'description': 'Languages spoken'}
+FIELD_DEFINITIONS['wrarecord']['religion']                      = {'label': 'Religion',                  'description': 'Religion'}
+FIELD_DEFINITIONS['wrarecord']['occupqual1']                    = {'label': 'Primary qualified occupation',   'description': 'Primary qualified occupation'}
+FIELD_DEFINITIONS['wrarecord']['occupqual2']                    = {'label': 'Secondary qualified occupation', 'description': 'Secondary qualified occupation'}
+FIELD_DEFINITIONS['wrarecord']['occupqual3']                    = {'label': 'Tertiary qualified occupation',  'description': 'Tertiary qualified occupation'}
+FIELD_DEFINITIONS['wrarecord']['occupotn1']                     = {'label': 'Primary potential occupation',   'description': 'Primary potential occupation'}
+FIELD_DEFINITIONS['wrarecord']['occupotn2']                     = {'label': 'Secondary potential occupation', 'description': 'Secondary potential occupation'}
+FIELD_DEFINITIONS['wrarecord']['wra_filenumber']                = {'label': 'WRA Filenumber',            'description': 'WRA-assigned 6-digit filenumber identifier'}
+#person
+#timestamp
+
+# set default values until we need to do something else
+for model in FIELD_DEFINITIONS.keys():
+    for key in FIELD_DEFINITIONS[model].keys():
+        item = FIELD_DEFINITIONS[model][key]
+        item['type'] = 'string'
+        item['required'] = True
+        item['display'] = True
+        item['sample'] = 'SAMPLE GOES HERE'
+        item['notes'] = 'NOTES GO HERE'
+         
