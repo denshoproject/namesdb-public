@@ -20,7 +20,8 @@ urlpatterns = [
     path('api/1.0/persons/', api.persons, name='namesdb-api-persons'),
     path('api/1.0/farrecords/', api.farrecords, name='namesdb-api-farrecords'),
     path('api/1.0/wrarecords/', api.wrarecords, name='namesdb-api-wrarecords'),
-    path('api/1.0/', api.Search.as_view(), name='namesdb-api-search'),
+    path('api/1.0/search/', api.Search.as_view(), name='namesdb-api-search'),
+    path('api/1.0/', api.index, name='namesdb-api-index'),
     
     path('search/', views.search_ui, name='namesdb-search'),
     re_path(

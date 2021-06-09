@@ -11,9 +11,9 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from ui import docstore
-from ui import search
 from namesdb.definitions import SEARCH_FIELDS as NAMESDB_SEARCH_FIELDS
+from . import docstore
+from . import search
 from . import models
 
 # set default hosts and index
@@ -28,9 +28,11 @@ DEFAULT_LIMIT = 25
 def index(request, format=None):
     """Swagger UI: /api/swagger/
     """
-    repo = 'ddr'
     data = {
-        'search': reverse('names-api-search', request=request),
+        'persons': reverse('namesdb-api-persons', request=request),
+        'farrecords': reverse('namesdb-api-farrecords', request=request),
+        'wrarecords': reverse('namesdb-api-wrarecords', request=request),
+        'search': reverse('namesdb-api-search', request=request),
     }
     return Response(data)
 
@@ -50,15 +52,21 @@ def _list(request, data):
 
 @api_view(['GET'])
 def persons(request, format=None):
-    objects = models.Person.objects(request, sort='id')
+    return _list(
+        request, search.model_objects(request, ['person'], sort_fields=['id'])
+    )
 
 @api_view(['GET'])
-def farrecords(request, format=None):
-    assert False
+def farrecords(request, facility='1-amache', format=None):
+    return _list(request, search.model_objects(
+        request, ['farrecord'], filters={'facility':facility}, sort_fields=['id']
+    ))
 
 @api_view(['GET'])
-def wrarecords(request, format=None):
-    assert False
+def wrarecords(request, camp=None, format=None):
+    return _list(
+        request, search.model_objects(request, ['wrarecord'], sort_fields=['id'])
+    )
 
 def _detail(request, data):
     """Common function for detail views.
