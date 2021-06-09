@@ -28,14 +28,19 @@ from elasticsearch_dsl import Index, Search, A, Q
 from elasticsearch_dsl.query import Match, MultiMatch, QueryString
 from elasticsearch_dsl.connections import connections
 
+from rest_framework.request import Request as RestRequest
+from rest_framework.reverse import reverse
+
 from django.conf import settings
 from django.http.request import HttpRequest
 
 from . import docstore
-from namesdb_public import models
+from . import models
 
 #SEARCH_LIST_FIELDS = models.all_list_fields()
-DEFAULT_LIMIT = 1000
+DEFAULT_LIMIT = 500
+
+DOCSTORE = docstore.Docstore()
 
 SEARCH_PARAM_ALLOWLIST = [
     'fulltext',
@@ -281,7 +286,6 @@ class SearchResults(object):
             params = request.query_params.dict()
         elif hasattr(self, 'params') and self.params:
             params = deepcopy(self.params)
-        
         return self._dict(params, {}, format_functions, request)
     
     def ordered_dict(self, request, format_functions, pad=False):
@@ -297,7 +301,6 @@ class SearchResults(object):
             params = request.query_params.dict()
         elif hasattr(self, 'params') and self.params:
             params = deepcopy(self.params)
-        
         return self._dict(params, OrderedDict(), format_functions, request, pad=pad)
     
     def _dict(self, params, data, format_functions, request, pad=False):
@@ -318,7 +321,7 @@ class SearchResults(object):
         if params.get('page'): params.pop('page')
         if params.get('limit'): params.pop('limit')
         if params.get('offset'): params.pop('offset')
-        qs = [key + '=' + val for key,val in params.items()]
+        qs = [key + '=' + val for key,val in params.items() if isinstance(val,str)]
         query_string = '&'.join(qs)
         data['prev_api'] = ''
         data['next_api'] = ''
@@ -330,15 +333,17 @@ class SearchResults(object):
         if pad:
             data['objects'] += [{'n':n} for n in range(0, self.page_start)]
         # page
-        for o in self.objects:
+        for n,o in enumerate(self.objects):
             format_function = format_functions[o.meta.index]
-            data['objects'].append(
-                format_function(
-                    document=o.to_dict(),
-                    request=request,
-                    listitem=True,
-                )
-            )
+            odict = o.to_dict()
+            odict.pop('index')
+            if not odict:
+                continue
+            data['objects'].append(format_function(
+                document=odict,
+                request=request,
+                listitem=True,
+            ))
         # pad after
         if pad:
             data['objects'] += [{'n':n} for n in range(self.page_next, self.total)]
@@ -374,7 +379,7 @@ class Searcher(object):
     """
     params = {}
     
-    def __init__(self, conn, search=None):
+    def __init__(self, conn=DOCSTORE.es, search=None):
         """
         @param conn: elasticsearch.Elasticsearch with hosts/port
         @param index: str Elasticsearch index name
@@ -503,3 +508,44 @@ class Searcher(object):
             limit=limit,
             offset=offset,
         )
+
+def model_objects(
+        request, modelnames, filters={}, sort_fields=[],
+        fields=models.SEARCH_INCLUDE_FIELDS, limit=DEFAULT_LIMIT, offset=0,
+        just_count=False
+):
+    """Return all documents in MODEL index (paged)
+    
+    Returns a paged list with count/prev/next metadata
+    
+    @param request: Django request object.
+    @param modelnames: list
+    @param sort_fields: list
+    @param fields: list
+    @param limit: int
+    @param offset: int
+    @param just_count: boolean
+    @returns: dict
+    """
+    indices = ','.join([DOCSTORE.index_name(model) for model in modelnames])
+    params={
+        'match_all': {},
+        'sort': sort_fields,
+    }
+    if filters:
+        for key,val in filters.items():
+            params[key] = val
+    searcher = Searcher()
+    searcher.prepare(
+        params=params,
+        search_models=indices,
+        fields=fields,
+        fields_nested=[],
+        fields_agg={},
+    )
+    s = searcher.s.to_dict()
+    assert 0
+    results = searcher.execute(limit, offset)
+    return results.ordered_dict(
+        request, format_functions=models.FORMATTERS
+    )
