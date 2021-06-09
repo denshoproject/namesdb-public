@@ -10,6 +10,7 @@ from elasticsearch.exceptions import NotFoundError
 import elasticsearch_dsl as dsl
 logging.getLogger("elasticsearch").setLevel(logging.WARNING)
 from rest_framework.exceptions import NotFound
+from rest_framework.reverse import reverse
 
 from . import definitions
 from . import docstore
@@ -288,10 +289,6 @@ class Person(Record):
     def get(oid, request):
         """Get record for web app"""
         return docstore_object(request, 'person', oid)
-    
-    @staticmethod
-    def objects(request, sort):
-        return docstore_objects(request, 'person', sort)
     
     @staticmethod
     def from_dict(nr_id, data):
@@ -597,10 +594,10 @@ FIELDS_BY_MODEL = {
     'wrarecord': FIELDS_WRARECORD,
 }
 
-#SEARCH_INCLUDE_FIELDS = list(set(
-#    INCLUDE_FIELDS_PERSON + INCLUDE_FIELDS_FARRECORD + INCLUDE_FIELDS_WRARECORD
-#))
-SEARCH_INCLUDE_FIELDS = ['nr_id', 'far_record_id', 'wra_record_id', 'id', 'last_name', 'first_name']
+SEARCH_INCLUDE_FIELDS = list(set(
+    INCLUDE_FIELDS_PERSON + INCLUDE_FIELDS_FARRECORD + INCLUDE_FIELDS_WRARECORD
+))
+#SEARCH_INCLUDE_FIELDS = ['nr_id', 'far_record_id', 'wra_record_id', 'id', 'last_name', 'first_name']
 
 SEARCH_AGG_FIELDS = {}
 for fieldset in [AGG_FIELDS_PERSON, AGG_FIELDS_FARRECORD, AGG_FIELDS_WRARECORD]:
@@ -615,10 +612,6 @@ def docstore_object(request, model, oid):
     )
     return format_object_detail(data, request)
 
-def docstore_objects(request, model, sort):
-    data = DOCSTORE.search(doctypes=[model], sort='id')
-    assert 0
-
 def format_object_detail(document, request, listitem=False):
     """Formats repository objects, adds list URLs,
     """
@@ -627,9 +620,17 @@ def format_object_detail(document, request, listitem=False):
         model = document['_index']
         document = document['_source']
     else:
-        oid = document.pop('id')
-        model = document.pop('model')
-    model = model.replace(docstore.INDEX_PREFIX, '')
+        if document.get('wra_record_id'):
+            oid = document['wra_record_id']
+            model = 'nameswrarecord'
+        elif document.get('far_record_id'):
+            oid = document['far_record_id']
+            model = 'namesfarrecord'
+        elif document.get('nr_id'):
+            oid = document['nr_id']
+            model = 'namesperson'
+    if model:
+        model = model.replace(docstore.INDEX_PREFIX, '')
     
     d = OrderedDict()
     d['id'] = oid
@@ -637,6 +638,8 @@ def format_object_detail(document, request, listitem=False):
     if document.get('index'):
         d['index'] = document.pop('index')
     d['links'] = OrderedDict()
+    d['links']['html'] = reverse('ui-object-detail', args=[oid], request=request)
+    d['links']['json'] = reverse('ui-api-object', args=[oid], request=request)
     d['title'] = ''
     d['description'] = ''
 
@@ -645,3 +648,63 @@ def format_object_detail(document, request, listitem=False):
             d[field] = document.pop(field)
     
     return d
+
+def format_person(document, request, listitem=False):
+    oid = document['nr_id']
+    model = 'person'
+    d = OrderedDict()
+    d['id'] = oid
+    d['model'] = model
+    if document.get('index'):
+        d['index'] = document.pop('index')
+    d['links'] = OrderedDict()
+    d['links']['html'] = reverse('namesdb-person', args=[oid], request=request)
+    d['links']['json'] = reverse('namesdb-api-person', args=[oid], request=request)
+    d['title'] = ''
+    d['description'] = ''
+    for field in FIELDS_BY_MODEL[model]:
+        if document.get(field):
+            d[field] = document.pop(field)
+    return d
+
+def format_farrecord(document, request, listitem=False):
+    oid = document['far_record_id']
+    model = 'farrecord'
+    d = OrderedDict()
+    d['id'] = oid
+    d['model'] = model
+    if document.get('index'):
+        d['index'] = document.pop('index')
+    d['links'] = OrderedDict()
+    d['links']['html'] = reverse('namesdb-farrecord', args=[oid], request=request)
+    d['links']['json'] = reverse('namesdb-api-farrecord', args=[oid], request=request)
+    d['title'] = ''
+    d['description'] = ''
+    for field in FIELDS_BY_MODEL[model]:
+        if document.get(field):
+            d[field] = document.pop(field)
+    return d
+
+def format_wrarecord(document, request, listitem=False):
+    oid = document['wra_record_id']
+    model = 'wrarecord'
+    d = OrderedDict()
+    d['id'] = oid
+    d['model'] = model
+    if document.get('index'):
+        d['index'] = document.pop('index')
+    d['links'] = OrderedDict()
+    d['links']['html'] = reverse('namesdb-wrarecord', args=[oid], request=request)
+    d['links']['json'] = reverse('namesdb-api-wrarecord', args=[oid], request=request)
+    d['title'] = ''
+    d['description'] = ''
+    for field in FIELDS_BY_MODEL[model]:
+        if document.get(field):
+            d[field] = document.pop(field)
+    return d
+
+FORMATTERS = {
+    'namesperson':    format_person,
+    'namesfarrecord': format_farrecord,
+    'nameswrarecord': format_wrarecord,
+}
