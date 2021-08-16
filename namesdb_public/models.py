@@ -323,6 +323,26 @@ class Person(Record):
         return Record.field_values(Person, field, es, index)
 
 
+FIELDS_PERSONFACILITY = [
+    'person_id', 'facility_id', 'entry_date', 'exit_date',
+]
+
+class PersonFacility(Record):
+    """PersonFacility record model
+    """
+    person_id                     = dsl.Keyword()
+    facility_id                   = dsl.Keyword()
+    entry_date                    = dsl.Date()
+    exit_date                     = dsl.Date()
+    
+    class Index:
+        model = 'personfacility'
+        name = f'{docstore.INDEX_PREFIX}personfacility'
+    
+    def __repr__(self):
+        return f'<PersonFacility {self.person_id},{self.facility_id}>'
+
+
 FIELDS_FARRECORD = [
     'far_record_id', 'facility', 'original_order', 'family_number',
     'far_line_id', 'last_name', 'first_name', 'other_names', 'date_of_birth',
