@@ -37,9 +37,9 @@ class Docstore():
         try:
             self.es.cluster.health()
         except TransportError:
-            logger.critical('Elasticsearch cluster unavailable')
-            print('CRITICAL: Elasticsearch cluster unavailable')
-            sys.exit(1)
+            msg = f'Elasticsearch cluster unavailable: {settings.DOCSTORE_HOSTS}'
+            logger.critical(msg)
+            #sys.exit(1)
     
     def index_exists(self, indexname):
         """
