@@ -62,7 +62,7 @@ class Docstore():
         try:
             self.es.cluster.health()
         except TransportError:
-            msg = f'Elasticsearch cluster unavailable: {settings.DOCSTORE_HOSTS}'
+            msg = f'Elasticsearch cluster unavailable: {settings.DOCSTORE_HOST}'
             logger.critical(msg)
             #sys.exit(1)
     
