@@ -42,10 +42,82 @@ DEFAULT_LIMIT = 500
 
 DOCSTORE = docstore.Docstore()
 
-SEARCH_PARAM_ALLOWLIST = [
+SEARCH_PARAM_ALLOWLIST = list(set([
     'fulltext',
-    'camp',
-]
+    # person
+    'nr_id',
+    'family_name',
+    'given_name',
+    'given_name_alt',
+    'other_names',
+    'middle_name',
+    'prefix_name',
+    'suffix_name',
+    'jp_name',
+    'preferred_name',
+    'birth_date',
+    'birth_date_text',
+    'birth_place',
+    'death_date',
+    'death_date_text',
+    'wra_family_no',
+    'wra_individual_no',
+    'citizenship',
+    'alien_registration_no',
+    'gender',
+    'preexclusion_residence_city',
+    'preexclusion_residence_state',
+    'postexclusion_residence_city',
+    'postexclusion_residence_state',
+    'exclusion_order_title',
+    'exclusion_order_id',
+    # farrecord
+    'facility',
+    'family_number',
+    'year_of_birth',
+    'sex',
+    'marital_status',
+    'citizenship',
+    'entry_type_code',
+    'entry_type',
+    'entry_category',
+    'entry_facility',
+    'departure_type_code',
+    'departure_type',
+    'departure_category',
+    'departure_state',
+    'camp_address_block',
+    'camp_address_barracks',
+    'camp_address_room',
+    # wrarecord
+    'gender',
+    'originalstate',
+    'familyno',
+    'individualno',
+    'assemblycenter',
+    'birthcountry',
+    'fatheroccupus',
+    'fatheroccupabr',
+    'yearsschooljapan',
+    'gradejapan',
+    'schooldegree',
+    'yearofusarrival',
+    'timeinjapan',
+    'ageinjapan',
+    'militaryservice',
+    'martitalstatus',
+    'ethnicity',
+    'birthplace',
+    'citizenshipstatus',
+    'highestgrade',
+    'language',
+    'religion',
+    'occupqual1',
+    'occupqual2',
+    'occupqual3',
+    'occupotn1',
+    'occupotn2',
+]))
 
 # fields where the relevant value is nested e.g. topics.id
 # TODO move to ddr-defs/repo_models/elastic.py?
@@ -544,7 +616,6 @@ def model_objects(
         fields_agg={},
     )
     s = searcher.s.to_dict()
-    assert 0
     results = searcher.execute(limit, offset)
     return results.ordered_dict(
         request, format_functions=models.FORMATTERS

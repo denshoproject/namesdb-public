@@ -52,21 +52,37 @@ def _list(request, data):
 
 @api_view(['GET'])
 def persons(request, format=None):
-    return _list(
-        request, search.model_objects(request, ['person'], sort_fields=['id'])
-    )
-
-@api_view(['GET'])
-def farrecords(request, facility='1-amache', format=None):
+    """List multiple Persons with filtering by most fields (exact values)
+    """
+    filters = _list_filters(request)
     return _list(request, search.model_objects(
-        request, ['farrecord'], filters={'facility':facility}, sort_fields=['id']
+        request, ['person'], filters, sort_fields=['id']
     ))
 
 @api_view(['GET'])
-def wrarecords(request, camp=None, format=None):
-    return _list(
-        request, search.model_objects(request, ['wrarecord'], sort_fields=['id'])
-    )
+def farrecords(request, format=None):
+    """List multiple FarRecords with filtering by most fields (exact values)
+    """
+    filters = _list_filters(request)
+    return _list(request, search.model_objects(
+        request, ['farrecord'], filters, sort_fields=['id']
+    ))
+
+@api_view(['GET'])
+def wrarecords(request, format=None):
+    """List multiple WraRecords with filtering by most fields (exact values)
+    """
+    filters = _list_filters(request)
+    return _list(request, search.model_objects(
+        request, ['wrarecord'], filters, sort_fields=['id']
+    ))
+
+def _list_filters(request):
+    return {
+        field: request.GET[field]
+        for field in search.SEARCH_PARAM_ALLOWLIST
+        if request.GET.get(field)
+    }
 
 def _detail(request, data):
     """Common function for detail views.
