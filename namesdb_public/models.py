@@ -217,6 +217,8 @@ INCLUDE_FIELDS_PERSON = [
     'exclusion_order_title',
 ]
 
+EXCLUDE_FIELDS_PERSON = []
+
 AGG_FIELDS_PERSON = {
     'birth_place': 'birth_place',
     'citizenship': 'citizenship',
@@ -293,15 +295,16 @@ class Person(Record):
     @staticmethod
     def from_dict(nr_id, data):
         """
-        @param fieldnames: list
         @param nr_id: str
         @param data: dict
         @returns: Person
         """
-        record = Record.from_dict(
-            Person, FIELDS_PERSON, nr_id, data
-        )
-        assemble_fulltext(record, FIELDS_PERSON)
+        # exclude private fields
+        fieldnames = [
+            f for f in FIELDS_PERSON if f not in EXCLUDE_FIELDS_PERSON
+        ]
+        record = Record.from_dict(Person, fieldnames, nr_id, data)
+        assemble_fulltext(record, fieldnames)
         return record
     
     @staticmethod
@@ -360,6 +363,8 @@ INCLUDE_FIELDS_FARRECORD = [
     'far_record_id', 'family_number', 'far_line_id', 'last_name', 'first_name',
     'other_names', 'date_of_birth', 'original_notes',
     ]
+
+EXCLUDE_FIELDS_FARRECORD = []
 
 AGG_FIELDS_FARRECORD = {
     'facility': 'facility',
@@ -445,10 +450,12 @@ class FarRecord(Record):
         @param data: dict
         @returns: FarRecord
         """
-        record = Record.from_dict(
-            FarRecord, FIELDS_FARRECORD, far_record_id, data
-        )
-        assemble_fulltext(record, FIELDS_FARRECORD)
+        # exclude private fields
+        fieldnames = [
+            f for f in FIELDS_PERSON if f not in EXCLUDE_FIELDS_FARRECORD
+        ]
+        record = Record.from_dict(FarRecord, fieldnames, far_record_id, data)
+        assemble_fulltext(record, fieldnames)
         return record
     
     @staticmethod
@@ -482,6 +489,8 @@ INCLUDE_FIELDS_WRARECORD = [
     'wra_record_id', 'lastname', 'firstname', 'middleinitial',
     'familyno', 'individualno',
 ]
+
+EXCLUDE_FIELDS_WRARECORD = []
 
 AGG_FIELDS_WRARECORD = {
     'facility': 'facility',
@@ -570,15 +579,16 @@ class WraRecord(Record):
     @staticmethod
     def from_dict(wra_record_id, data):
         """
-        @param fieldnames: list
         @param wra_record_id: str
         @param data: dict
         @returns: WraRecord
         """
-        record = Record.from_dict(
-            WraRecord, FIELDS_WRARECORD, wra_record_id, data
-        )
-        assemble_fulltext(record, FIELDS_WRARECORD)
+        # exclude private fields
+        fieldnames = [
+            f for f in FIELDS_PERSON if f not in EXCLUDE_FIELDS_WRARECORD
+        ]
+        record = Record.from_dict(WraRecord, fieldnames, wra_record_id, data)
+        assemble_fulltext(record, fieldnames)
         return record
     
     @staticmethod
@@ -615,9 +625,10 @@ FIELDS_BY_MODEL = {
 }
 
 SEARCH_INCLUDE_FIELDS = list(set(
-    INCLUDE_FIELDS_PERSON + INCLUDE_FIELDS_FARRECORD + INCLUDE_FIELDS_WRARECORD
+      [x for x in FIELDS_PERSON    if x not in EXCLUDE_FIELDS_PERSON   ]
+    + [x for x in FIELDS_FARRECORD if x not in EXCLUDE_FIELDS_FARRECORD]
+    + [x for x in FIELDS_WRARECORD if x not in EXCLUDE_FIELDS_WRARECORD]
 ))
-#SEARCH_INCLUDE_FIELDS = ['nr_id', 'far_record_id', 'wra_record_id', 'id', 'last_name', 'first_name']
 
 SEARCH_AGG_FIELDS = {}
 for fieldset in [AGG_FIELDS_PERSON, AGG_FIELDS_FARRECORD, AGG_FIELDS_WRARECORD]:
