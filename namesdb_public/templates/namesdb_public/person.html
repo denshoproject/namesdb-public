@@ -5,48 +5,91 @@
 
 {% block breadcrumbs %}{{ block.super }}
 <li><a href="{% url "namesdb-index" %}">Names Registry</a></li>
-<li><a href="{% url "namesdb-person" %}">Persons</a></li>
+<li><a href="{% url "namesdb-persons" %}">Persons</a></li>
 <li>{{ record.preferred_name }}</li>
 {% endblock breadcrumbs %}
 
 {% block content %}
 <section class="container">
 
+  <h2>
+    <strong>{{ record.preferred_name }}</strong>
+    <small class="font300">{{ record.nr_id }}</small>
+  </h2>
 
-  <div class="white-row">
+  <table class="table">
+    <tbody>
+      {% for key,value in record.items %}
+      <tr>
+        <th>
+          {{ key }}
+        </th>
+        <td>
+          {{ value }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-    <h2>
-      <strong>{{ record.preferred_name }}</strong>
-      <small class="font300">{{ record.nr_id }}</small>
-    </h2>
+  <h3>Facilities</h3>
+  <table class="table">
+    <tbody>
+      {% for facility in record.facilities %}
+      <tr>
+        <th>
+          {{ facility.facility_id }}
+        </th>
+        <td>
+          {{ facility.entry_date }}
+        </td>
+        <td>
+          {{ facility.exit_date }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-    <div class="row">
-      <div class="col-md-9 col-md-offset-1">
-        <div class="table-responsive">
+  <h3>FAR Records</h3>
+  <table class="table">
+    <tbody>
+      {% for record in record.far_records %}
+      <tr>
+        <th>
+          {{ record.far_record_id }}
+        </th>
+        <td>
+          {{ record.last_name }}
+        </td>
+        <td>
+          {{ record.first_name }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-<table class="table">
-  <tbody>
-    {% for field in record.fields %}
-    <tr>
-      <td>
-        <!-- {{ field.field }} -->
-        <a href="#" data-container="body" data-toggle="tooltip" data-placement="bottom" data-original-title="{{ field.description }}">
-          {% if field.label %}{{ field.label }}{% else %}{{ field.field }}{% endif %}
-        </a>
-      </td>
-      <td>
-        {{ field.value }}
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+  <h3>WRA Records</h3>
+  <table class="table">
+    <tbody>
+      {% for record in record.wra_records %}
+      <tr>
+        <th>
+          {{ record.wra_record_id }}
+        </th>
+        <td>
+          {{ record.lastname }}
+        </td>
+        <td>
+          {{ record.firstname }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-        </div><!--end table-responsive-->
-
-      </div>
-    </div>
-  </div>
+  <h3>Others in Family {{ record.wra_family_no }}</h3>
 
 </section><!-- .container -->
 {% endblock content %}

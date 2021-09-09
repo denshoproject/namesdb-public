@@ -5,51 +5,39 @@
 
 {% block breadcrumbs %}{{ block.super }}
 <li><a href="{% url "names-index" %}">Names Registry</a></li>
-<li><a href="{% url "namesdb-far" %}">FAR</a></li>
+<li><a href="{% url "namesdb-farrecords" %}">FAR</a></li>
 <li>{{ record.last_name }}, {{ record.first_name }}</li>
 {% endblock breadcrumbs %}
 
 {% block content %}
 <section class="container">
 
+  <h2>
+    <strong>{{ record.last_name }}, {{ record.first_name }}</strong>
+    <small class="font300">{{ record.far_record_id }}</small>
+  </h2>
 
-  <div class="white-row">
+  <table class="table">
+    <tbody>
+      {% for key,value in record.items %}
+      <tr>
+        <th>
+          {{ key }}
+        </th>
+        <td>
+          {{ value }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-    <h2>
-      <strong>{{ record.last_name }}, {{ record.first_name }}</strong>
-      <small class="font300">{{ record.far_record_id }}</small>
-    </h2>
+  <h3>Persons</h3>
+  <p>
+    <a href="{{ record.person.id }}">{{ record.person.name }}</a><br/>
+  </p>
 
-    <div class="row">
-      <div class="col-md-9 col-md-offset-1">
-
-        <div class="table-responsive">
-
-<table class="table">
-  <tbody>
-
-{% for field in record.fields %}
-    <tr>
-      <td>
-<!-- {{ field.field }} -->
-<a href="#" data-container="body" data-toggle="tooltip" data-placement="bottom" data-original-title="{{ field.description }}">
-{% if field.label %}{{ field.label }}{% else %}{{ field.field }}{% endif %}
-</a>
-      </td>
-      <td>
-{{ field.value }}
-      </td>
-    </tr>
-{% endfor %}
-
-  </tbody>
-</table>
-
-        </div><!--end table-responsive-->
-
-      </div>
-    </div>
-  </div>
+  <h3>Others in Family {{ record.family_number }}</h3>
 
 </section><!-- .container -->
 {% endblock content %}
