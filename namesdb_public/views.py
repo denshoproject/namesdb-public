@@ -95,6 +95,39 @@ def farrecords(request, template_name='names/farrecords.html'):
 def wrarecords(request, template_name='names/wrarecords.html'):
     assert False
 
+def person(request, object_id, template_name='namesdb_public/person.html'):
+    url = _mkurl(
+        request, reverse('namesdb-api-person', args=[object_id])
+    )
+    r = requests.get(url)
+    if not r.status_code == 200:
+        raise Http404
+    return render(request, template_name, {
+        'record': r.json(),
+    })
+
+def farrecord(request, object_id, template_name='namesdb_public/farrecord.html'):
+    url = _mkurl(
+        request, reverse('namesdb-api-farrecord', args=[object_id])
+    )
+    r = requests.get(url)
+    if not r.status_code == 200:
+        raise Http404
+    return render(request, template_name, {
+        'record': r.json(),
+    })
+
+def wrarecord(request, object_id, template_name='namesdb_public/wrarecord.html'):
+    url = _mkurl(
+        request, reverse('namesdb-api-wrarecord', args=[object_id])
+    )
+    r = requests.get(url)
+    if not r.status_code == 200:
+        raise Http404
+    return render(request, template_name, {
+        'record': r.json(),
+    })
+
 def search_ui(request):
     api_url = '%s?%s' % (
         _mkurl(request, reverse('names-api-search')),
@@ -167,36 +200,3 @@ def _limit_offset(request):
         limit = settings.RESULTS_PER_PAGE
         offset = 0
     return limit,offset
-
-def person(request, object_id, template_name='namesdb_public/person.html'):
-    url = _mkurl(
-        request, reverse('namesdb-api-person', args=[object_id])
-    )
-    r = requests.get(url)
-    if not r.status_code == 200:
-        raise Http404
-    return render(request, template_name, {
-        'record': r.json(),
-    })
-
-def farrecord(request, object_id, template_name='namesdb_public/farrecord.html'):
-    url = _mkurl(
-        request, reverse('namesdb-api-farrecord', args=[object_id])
-    )
-    r = requests.get(url)
-    if not r.status_code == 200:
-        raise Http404
-    return render(request, template_name, {
-        'record': r.json(),
-    })
-
-def wrarecord(request, object_id, template_name='namesdb_public/wrarecord.html'):
-    url = _mkurl(
-        request, reverse('namesdb-api-wrarecord', args=[object_id])
-    )
-    r = requests.get(url)
-    if not r.status_code == 200:
-        raise Http404
-    return render(request, template_name, {
-        'record': r.json(),
-    })
