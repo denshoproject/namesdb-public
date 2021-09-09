@@ -2,7 +2,7 @@
     searcher = search.Searcher()
     searcher.prepare(
         params=request.GET.copy(),
-        params_allowlist=models.SEARCH_PARAM_ALLOWLIST,
+        params_allowlist=models.SEARCH_INCLUDE_FIELDS,
         search_models=models.SEARCH_MODELS,
         fields=models.SEARCH_INCLUDE_FIELDS,
         fields_nested=models.SEARCH_NESTED_FIELDS,
@@ -41,83 +41,6 @@ from . import models
 DEFAULT_LIMIT = 500
 
 DOCSTORE = docstore.Docstore()
-
-SEARCH_PARAM_ALLOWLIST = list(set([
-    'fulltext',
-    # person
-    'nr_id',
-    'family_name',
-    'given_name',
-    'given_name_alt',
-    'other_names',
-    'middle_name',
-    'prefix_name',
-    'suffix_name',
-    'jp_name',
-    'preferred_name',
-    'birth_date',
-    'birth_date_text',
-    'birth_place',
-    'death_date',
-    'death_date_text',
-    'wra_family_no',
-    'wra_individual_no',
-    'citizenship',
-    'alien_registration_no',
-    'gender',
-    'preexclusion_residence_city',
-    'preexclusion_residence_state',
-    'postexclusion_residence_city',
-    'postexclusion_residence_state',
-    'exclusion_order_title',
-    'exclusion_order_id',
-    # farrecord
-    'facility',
-    'family_number',
-    'year_of_birth',
-    'sex',
-    'marital_status',
-    'citizenship',
-    'entry_type_code',
-    'entry_type',
-    'entry_category',
-    'entry_facility',
-    'departure_type_code',
-    'departure_type',
-    'departure_category',
-    'departure_state',
-    'camp_address_block',
-    'camp_address_barracks',
-    'camp_address_room',
-    # wrarecord
-    'gender',
-    'originalstate',
-    'familyno',
-    'individualno',
-    'assemblycenter',
-    'birthcountry',
-    'fatheroccupus',
-    'fatheroccupabr',
-    'yearsschooljapan',
-    'gradejapan',
-    'schooldegree',
-    'yearofusarrival',
-    'timeinjapan',
-    'ageinjapan',
-    'militaryservice',
-    'martitalstatus',
-    'ethnicity',
-    'birthplace',
-    'citizenshipstatus',
-    'highestgrade',
-    'language',
-    'religion',
-    'occupqual1',
-    'occupqual2',
-    'occupqual3',
-    'occupotn1',
-    'occupotn2',
-]))
 
 # fields where the relevant value is nested e.g. topics.id
 # TODO move to ddr-defs/repo_models/elastic.py?
@@ -472,7 +395,7 @@ class Searcher(object):
     def prepare(
             self,
             params={},
-            params_allowlist=SEARCH_PARAM_ALLOWLIST,
+            params_allowlist=models.SEARCH_INCLUDE_FIELDS,
             search_models=SEARCH_MODELS,
             fields=SEARCH_INCLUDE_FIELDS,
             fields_nested=SEARCH_NESTED_FIELDS,
@@ -481,7 +404,7 @@ class Searcher(object):
         """Assemble elasticsearch_dsl.Search object
         
         @param params:           dict
-        @param params_allowlist: list Accept only these (SEARCH_PARAM_ALLOWLIST)
+        @param params_allowlist: list Accept only these (SEARCH_INCLUDE_FIELDS)
         @param search_models:    list Limit to these ES doctypes (SEARCH_MODELS)
         @param fields:           list Retrieve these fields (SEARCH_INCLUDE_FIELDS)
         @param fields_nested:    list See SEARCH_NESTED_FIELDS
