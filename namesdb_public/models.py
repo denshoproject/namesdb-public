@@ -452,7 +452,7 @@ class FarRecord(Record):
         """
         # exclude private fields
         fieldnames = [
-            f for f in FIELDS_PERSON if f not in EXCLUDE_FIELDS_FARRECORD
+            f for f in FIELDS_FARRECORD if f not in EXCLUDE_FIELDS_FARRECORD
         ]
         record = Record.from_dict(FarRecord, fieldnames, far_record_id, data)
         assemble_fulltext(record, fieldnames)
@@ -585,7 +585,7 @@ class WraRecord(Record):
         """
         # exclude private fields
         fieldnames = [
-            f for f in FIELDS_PERSON if f not in EXCLUDE_FIELDS_WRARECORD
+            f for f in FIELDS_WRARECORD if f not in EXCLUDE_FIELDS_WRARECORD
         ]
         record = Record.from_dict(WraRecord, fieldnames, wra_record_id, data)
         assemble_fulltext(record, fieldnames)
