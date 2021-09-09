@@ -183,41 +183,9 @@ class SearchResults(object):
                     # just not have the data that should be there.
                     # See https://github.com/denshoproject/ddr-public/issues/161
 
-                    # nested aggregations
-                    if field in ['topics', 'facility']:
-                        field_ids = '{}_ids'.format(field)
-                        aggs = results.aggregations[field]
-                        self.aggregations[field] = aggs[field_ids].buckets
-                     
                     # simple aggregations
-                    else:
-                        aggs = results.aggregations[field]
-                        self.aggregations[field] = aggs.buckets
-
-                    #if VOCAB_TOPICS_IDS_TITLES.get(field):
-                    #    self.aggregations[field] = []
-                    #    for bucket in buckets:
-                    #        if bucket['key'] and bucket['doc_count']:
-                    #            self.aggregations[field].append({
-                    #                'key': bucket['key'],
-                    #                'label': VOCAB_TOPICS_IDS_TITLES[field].get(str(bucket['key'])),
-                    #                'doc_count': str(bucket['doc_count']),
-                    #            })
-                    #            # print topics/facility errors in search results
-                    #            # TODO hard-coded
-                    #            if (field in ['topics', 'facility']) and not (isinstance(bucket['key'], int) or bucket['key'].isdigit()):
-                    #                self.errors.append(bucket)
-                    # 
-                    #else:
-                    #    self.aggregations[field] = [
-                    #        {
-                    #            'key': bucket['key'],
-                    #            'label': bucket['key'],
-                    #            'doc_count': str(bucket['doc_count']),
-                    #        }
-                    #        for bucket in buckets
-                    #        if bucket['key'] and bucket['doc_count']
-                    #    ]
+                    aggs = results.aggregations[field]
+                    self.aggregations[field] = aggs.buckets
 
         elif objects:
             # objects
