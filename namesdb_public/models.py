@@ -662,6 +662,11 @@ def format_object_detail(document, request, listitem=False):
             model = 'namesperson'
     if model:
         model = model.replace(docstore.INDEX_PREFIX, '')
+    # accomodate naan/noids
+    if '/' in oid:
+        naan,noid = oid.split('/')
+    else:
+        naan,noid = None,None
     
     d = OrderedDict()
     d['id'] = oid
@@ -669,8 +674,16 @@ def format_object_detail(document, request, listitem=False):
     if document.get('index'):
         d['index'] = document.pop('index')
     d['links'] = OrderedDict()
-    d['links']['html'] = reverse('ui-object-detail', args=[oid], request=request)
-    d['links']['json'] = reverse('ui-api-object', args=[oid], request=request)
+    # accomodate ark/noids
+    if model == 'person':
+        d['links']['html'] = reverse('namesdb-person', args=[naan,noid], request=request)
+        d['links']['json'] = reverse('namesdb-api-person', args=[naan,noid], request=request)
+    elif model == 'farrecord':
+        d['links']['html'] = reverse('namesdb-farrecord', args=[oid], request=request)
+        d['links']['json'] = reverse('namesdb-api-farrecord', args=[oid], request=request)
+    elif model == 'wrarecord':
+        d['links']['html'] = reverse('namesdb-wrarecord', args=[oid], request=request)
+        d['links']['json'] = reverse('namesdb-api-wrarecord', args=[oid], request=request)
     d['title'] = ''
     d['description'] = ''
 
@@ -682,6 +695,7 @@ def format_object_detail(document, request, listitem=False):
 
 def format_person(document, request, listitem=False):
     oid = document['nr_id']
+    naan,noid = oid.split('/')
     model = 'person'
     d = OrderedDict()
     d['id'] = oid
@@ -689,8 +703,8 @@ def format_person(document, request, listitem=False):
     if document.get('index'):
         d['index'] = document.pop('index')
     d['links'] = OrderedDict()
-    d['links']['html'] = reverse('namesdb-person', args=[oid], request=request)
-    d['links']['json'] = reverse('namesdb-api-person', args=[oid], request=request)
+    d['links']['html'] = reverse('namesdb-person', args=[naan,noid], request=request)
+    d['links']['json'] = reverse('namesdb-api-person', args=[naan,noid], request=request)
     d['title'] = ''
     d['description'] = ''
     for field in FIELDS_BY_MODEL[model]:

@@ -95,9 +95,10 @@ def farrecords(request, template_name='names/farrecords.html'):
 def wrarecords(request, template_name='names/wrarecords.html'):
     assert False
 
-def person(request, object_id, template_name='namesdb_public/person.html'):
+def person(request, naan, noid, template_name='namesdb_public/person.html'):
+    object_id = '/'.join([naan, noid])
     url = _mkurl(
-        request, reverse('namesdb-api-person', args=[object_id])
+        request, reverse('namesdb-api-person', args=[naan, noid])
     )
     r = requests.get(url)
     if not r.status_code == 200:

@@ -36,7 +36,7 @@ urlpatterns = [
     ),
     
     re_path(
-        r'^api/1.0/persons/(?P<object_id>[0-9a-zA-Z_:-]+)',
+        r'^api/1.0/persons/(?P<naan>[0-9a-zA-Z_:-]+)/(?P<noid>[0-9a-zA-Z_:-]+)',
         api.person, name='namesdb-api-person'
     ),
     re_path(
@@ -55,7 +55,7 @@ urlpatterns = [
     
     path('search/', views.search_ui, name='namesdb-search'),
     re_path(
-        r'^persons/(?P<object_id>[0-9a-zA-Z_:-]+)',
+        r'^persons/(?P<naan>[0-9a-zA-Z_:-]+)/(?P<noid>[0-9a-zA-Z_:-]+)',
         views.person, name='namesdb-person'
     ),
     re_path(

@@ -92,7 +92,8 @@ def _detail(request, data):
     return Response(data)
 
 @api_view(['GET'])
-def person(request, object_id, format=None):
+def person(request, naan, noid, format=None):
+    object_id = '/'.join([naan, noid])
     return _detail(request, models.Person.get(object_id, request))
 
 @api_view(['GET'])
