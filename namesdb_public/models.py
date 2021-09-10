@@ -246,6 +246,11 @@ class ListWraRecord(dsl.InnerDoc):
     firstname = dsl.Keyword()
     middleinitial = dsl.Keyword()
 
+class ListFamily(dsl.InnerDoc):
+    wra_family_no = dsl.Keyword()
+    nr_id = dsl.Keyword()
+    preferred_name = dsl.Keyword()
+
 class Person(Record):
     """Person record model
     """
@@ -279,6 +284,7 @@ class Person(Record):
     facilities                    = dsl.Nested(ListFacility)
     far_records                   = dsl.Nested(ListFarRecord)
     wra_records                   = dsl.Nested(ListWraRecord)
+    family                        = dsl.Nested(ListFamily)
     
     class Index:
         model = 'person'
@@ -305,6 +311,15 @@ class Person(Record):
         ]
         record = Record.from_dict(Person, fieldnames, nr_id, data)
         assemble_fulltext(record, fieldnames)
+        record.family = []
+        if data.get('family'):
+            record.family = [
+                {
+                    'nr_id':         person['nr_id'],
+                    'preferred_name': person['preferred_name'],
+                }
+                for person in data['family']
+            ]
         return record
     
     @staticmethod
@@ -392,6 +407,12 @@ class NestedPerson(dsl.InnerDoc):
     nr_id = dsl.Keyword()
     preferred_name = dsl.Keyword()
 
+class ListFamily(dsl.InnerDoc):
+    family_number = dsl.Keyword()
+    far_record_id = dsl.Keyword()
+    last_name = dsl.Keyword()
+    first_name = dsl.Keyword()
+
 class FarRecord(Record):
     """FarRecord model
     """
@@ -429,6 +450,7 @@ class FarRecord(Record):
     reference               = dsl.Keyword()
     original_notes          = dsl.Keyword()
     person                  = dsl.Nested(NestedPerson)
+    family                  = dsl.Nested(ListFamily)
     timestamp               = dsl.Date()
     
     class Index:
@@ -456,6 +478,16 @@ class FarRecord(Record):
         ]
         record = Record.from_dict(FarRecord, fieldnames, far_record_id, data)
         assemble_fulltext(record, fieldnames)
+        record.family = []
+        if data.get('family'):
+            record.family = [
+                {
+                    'far_record_id': person['far_record_id'],
+                    'last_name': person['last_name'],
+                    'first_name': person['first_name'],
+                }
+                for person in data['family']
+            ]
         return record
     
     @staticmethod
@@ -522,6 +554,12 @@ AGG_FIELDS_WRARECORD = {
     'occupotn2': 'occupotn2',
 }
 
+class ListFamily(dsl.InnerDoc):
+    familyno = dsl.Keyword()
+    wra_record_id = dsl.Keyword()
+    lastname = dsl.Keyword()
+    firstname = dsl.Keyword()
+
 class WraRecord(Record):
     """WraRecord model
     """
@@ -562,6 +600,7 @@ class WraRecord(Record):
     occupotn2         = dsl.Keyword()
     wra_filenumber    = dsl.Keyword()
     person            = dsl.Nested(NestedPerson)
+    family            = dsl.Nested(ListFamily)
     timestamp         = dsl.Date()
     
     class Index:
@@ -589,6 +628,16 @@ class WraRecord(Record):
         ]
         record = Record.from_dict(WraRecord, fieldnames, wra_record_id, data)
         assemble_fulltext(record, fieldnames)
+        record.family = []
+        if data.get('family'):
+            record.family = [
+                {
+                    'wra_record_id': person['wra_record_id'],
+                    'lastname': person['lastname'],
+                    'firstname': person['firstname'],
+                }
+                for person in data['family']
+            ]
         return record
     
     @staticmethod
@@ -691,6 +740,8 @@ def format_object_detail(document, request, listitem=False):
         if document.get(field):
             d[field] = document.pop(field)
     
+    if document.get('family'):
+        d['family'] = document['family']
     return d
 
 def format_person(document, request, listitem=False):
