@@ -735,13 +735,59 @@ def format_object_detail(document, request, listitem=False):
         d['links']['json'] = reverse('namesdb-api-wrarecord', args=[oid], request=request)
     d['title'] = ''
     d['description'] = ''
-
+    
     for field in FIELDS_BY_MODEL[model]:
         if document.get(field):
-            d[field] = document.pop(field)
+            d[field] = document[field]
+    
+    if document.get('far_records'):
+        for p in document['far_records']:
+            p['links'] = {}
+            p['links']['html'] = reverse('namesdb-farrecord', args=[p['far_record_id']], request=request)
+            p['links']['json'] = reverse('namesdb-api-farrecord', args=[p['far_record_id']], request=request)
+    if document.get('wra_records'):
+        for p in document['wra_records']:
+            p['links'] = {}
+            p['links']['html'] = reverse('namesdb-wrarecord', args=[p['wra_record_id']], request=request)
+            p['links']['json'] = reverse('namesdb-api-wrarecord', args=[p['wra_record_id']], request=request)
+    if document.get('person'):
+        naan,noid = document['person']['id'].split('/')
+        document['person']['links'] = {}
+        document['person']['links']['html'] = reverse('namesdb-person', args=[naan,noid], request=request)
+        document['person']['links']['json'] = reverse('namesdb-api-person', args=[naan,noid], request=request)
+    
+    def add_links(p, idfield, value=None):
+        if not value:
+            value = idfield
+        p['links'] = {}
+        if idfield == 'far_record_id' and p.get(idfield):
+            p['links']['html'] = reverse('namesdb-farrecord', args=[p[idfield]], request=request)
+            p['links']['json'] = reverse('namesdb-api-farrecord', args=[p[idfield]], request=request)
+        elif idfield == 'wra_record_id' and p.get(idfield):
+            p['links']['html'] = reverse('namesdb-wrarecord', args=[p[idfield]], request=request)
+            p['links']['json'] = reverse('namesdb-api-wrarecord', args=[p[idfield]], request=request)
+        elif idfield == 'nr_id' and p.get(idfield):
+            naan,noid = p[idfield].split('/')
+            p['links'] = {}
+            p['links']['html'] = reverse('namesdb-person', args=[naan,noid], request=request)
+            p['links']['json'] = reverse('namesdb-api-person', args=[naan,noid], request=request)
+        return p
     
     if document.get('family'):
-        d['family'] = document['family']
+        d['family'] = []
+        for p in document['family']:
+            # exclude self from family list
+            if document.get('nr_id') and (p['nr_id'] == document['nr_id']):
+                continue
+            elif document.get('far_record_id') and (p['far_record_id'] == document['far_record_id']):
+                continue
+            elif document.get('wra_record_id') and (p['wra_record_id'] == document['wra_record_id']):
+                continue
+            if p.get('far_record_id'): add_links(p, 'far_record_id')
+            if p.get('wra_record_id'): add_links(p, 'wra_record_id')
+            if p.get('nr_id'):         add_links(p, 'nr_id')
+            d['family'].append(p)
+    
     return d
 
 def format_person(document, request, listitem=False):
