@@ -34,10 +34,20 @@
 
   <h3>Persons</h3>
   <p>
-    <a href="{{ record.person.id }}">{{ record.person.name }}</a><br/>
+    <a href="{{ record.person.links.html }}">{{ record.person.name }}</a><br/>
   </p>
 
   <h3>Others in Family {{ record.family_number }}</h3>
+  <ul>
+    {% for record in record.family %}
+    <li>
+      <a href="{{ record.links.html }}">
+        {{ record.last_name }}
+        {{ record.first_name }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
 
 </section><!-- .container -->
 {% endblock content %}
