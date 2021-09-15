@@ -521,7 +521,7 @@ FIELDS_WRARECORD = [
     'assemblycenter', 'originaladdress', 'birthcountry', 'fatheroccupus',
     'fatheroccupabr', 'yearsschooljapan', 'gradejapan', 'schooldegree',
     'yearofusarrival', 'timeinjapan', 'ageinjapan', 'militaryservice',
-    'martitalstatus', 'ethnicity', 'birthplace', 'citizenshipstatus',
+    'maritalstatus', 'ethnicity', 'birthplace', 'citizenshipstatus',
     'highestgrade', 'language', 'religion', 'occupqual1', 'occupqual2',
     'occupqual3', 'occupotn1', 'occupotn2', 'wra_filenumber', 'person',
     'timestamp',
@@ -555,7 +555,7 @@ AGG_FIELDS_WRARECORD = {
     'timeinjapan': 'timeinjapan',
     'ageinjapan': 'ageinjapan',
     'militaryservice': 'militaryservice',
-    'martitalstatus': 'martitalstatus',
+    'maritalstatus': 'maritalstatus',
     'ethnicity': 'ethnicity',
     'birthplace': 'birthplace',
     'citizenshipstatus': 'citizenshipstatus',
@@ -601,7 +601,7 @@ class WraRecord(Record):
     timeinjapan       = dsl.Keyword()
     ageinjapan        = dsl.Keyword()
     militaryservice   = dsl.Keyword()
-    martitalstatus    = dsl.Keyword()
+    maritalstatus     = dsl.Keyword()
     ethnicity         = dsl.Keyword()
     birthplace        = dsl.Keyword()
     citizenshipstatus = dsl.Keyword()
