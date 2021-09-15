@@ -5,11 +5,11 @@ from django.conf import settings
 register = template.Library()
 	
 def record( record ):
-    t = template.loader.get_template('names/list-object.html')
+    t = template.loader.get_template('namesdb_public/list-object.html')
     return t.render({'record':record})
 	
 def names_paginate( paginator ):
-    t = template.loader.get_template('names/names-paginate.html')
+    t = template.loader.get_template('namesdb_public/names-paginate.html')
     return t.render({'paginator':paginator})
 
 register.simple_tag(record)

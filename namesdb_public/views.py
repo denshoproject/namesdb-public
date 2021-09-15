@@ -28,7 +28,7 @@ NON_FILTER_FIELDS = [
 ]
 
 
-def index(request, template_name='names/index.html'):
+def index(request, template_name='namesdb_public/index.html'):
     """Simplified index page with just query and camp fields.
     """
     kwargs = [(key,val) for key,val in request.GET.items()]
@@ -86,13 +86,13 @@ def index(request, template_name='names/index.html'):
         'paginator': paginator,
     })
 
-def persons(request, template_name='names/persons.html'):
+def persons(request, template_name='namesdb_public/persons.html'):
     assert False
 
-def farrecords(request, template_name='names/farrecords.html'):
+def farrecords(request, template_name='namesdb_public/farrecords.html'):
     assert False
 
-def wrarecords(request, template_name='names/wrarecords.html'):
+def wrarecords(request, template_name='namesdb_public/wrarecords.html'):
     assert False
 
 def person(request, naan, noid, template_name='namesdb_public/person.html'):
@@ -177,7 +177,7 @@ def search_ui(request):
     else:
         context['form'] = forms.SearchForm()
 
-    return render(request, 'names/index.html', context)
+    return render(request, 'namesdb_public/index.html', context)
 
 def _mkurl(request, path, query=None):
     return urlunparse((
