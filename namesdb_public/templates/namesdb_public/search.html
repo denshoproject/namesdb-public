@@ -1,5 +1,5 @@
 {% extends "namesdb_public/base.html" %}
-{% load namesdb_public_tags %}
+{% load bootstrap_pagination namesdb_public_tags %}
 
 
 {% block title %}Names Database{% endblock %}
@@ -50,16 +50,16 @@
 {% if paginator.object_list %}
 
 {% if paginator.num_pages > 1 %}
-{% names_paginate paginator %}
+{% bootstrap_paginate page %}
 {% endif %}
 
 <div id="records">
-{% for record in paginator.object_list %}
+{% for record in page.object_list %}
 {% record record %}
 {% endfor %}
 </div><!-- #records -->
 
-{% endif %}{# paginator.object_list #}
+{% endif %}{# page.object_list #}
 
 {% if body %}
 <pre>{{ body }}</pre>

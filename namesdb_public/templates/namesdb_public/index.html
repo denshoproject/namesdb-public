@@ -250,24 +250,14 @@ returned
       </thead>
       <tbody>
 
-{% for object in page.object_list %}
-        <tr>
-          <td>
-            <a href="{{ object.links.html }}">{{ object.m_lastname }}, {{ object.m_firstname }} ({{ object.m_gender }})</a>
-          </td>
-          <td>{{ object.m_camp_label }}</td>
-          <td>{{ object.m_birthyear }}</td>
-          <td>{{ object.m_originalstate_label }}</td>
-          <td>{{ object.m_familyno }}</td>
-          <td>{{ object.m_individualno }}</td>
-          <td>{{ object.m_dataset_label }}</td>
-        </tr>
+{% for record in page.object_list %}
+{% record record %}
 {% endfor %}
 
       </tbody>
     </table>
 
-{% endif %}{# paginator.object_list #}
+{% endif %}{# page.object_list #}
 
 </div><!-- #records -->
 
