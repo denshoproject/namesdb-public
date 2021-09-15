@@ -11,7 +11,8 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from namesdb.definitions import SEARCH_FIELDS as NAMESDB_SEARCH_FIELDS
+from django.http.request import HttpRequest
+
 from . import docstore
 from . import search
 from . import models
@@ -116,9 +117,7 @@ class Search(APIView):
 
         Search API help: /api/search/help/
         """
-        if request.GET.get('fulltext'):
-            return self.grep(request)
-        return Response({})
+        return self.grep(request)
     
     def post(self, request, format=None):
         """Search the Names Database; good for more complicated custom searches.
@@ -129,9 +128,7 @@ class Search(APIView):
         
         Search API help: /api/search/help/
         """
-        if request.data.get('fulltext'):
-            return self.grep(request)
-        return Response({})
+        return self.grep(request)
     
     def grep(self, request):
         """NamesDB search
@@ -166,15 +163,18 @@ class Search(APIView):
             params = request.GET.copy()
         elif isinstance(request, RestRequest):
             params = request.query_params.dict()
+        
         searcher.prepare(
             params=params,
-            params_allowlist=['fulltext', 'm_camp'],
-            search_models=['names-record'],
-            fields=NAMESDB_SEARCH_FIELDS,
+            params_allowlist=['fulltext'] + models.SEARCH_INCLUDE_FIELDS_PERSON,
+            search_models=['namesperson'],
+            fields=models.SEARCH_INCLUDE_FIELDS_PERSON,
             fields_nested=[],
-            fields_agg={'m_camp':'m_camp'},
+            #fields_agg=models.AGG_FIELDS_PERSON,
+            fields_agg={'facility':'facility'},
         )
-        results = searcher.execute(limit, offset)
-        return Response(
-            results.ordered_dict(request, format_functions=models.FORMATTERS)
+        results = searcher.execute(limit, offset).ordered_dict(
+            request, format_functions=models.FORMATTERS
         )
+        aggs = results.pop('aggregations')
+        return Response(results)
