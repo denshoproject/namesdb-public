@@ -5,7 +5,12 @@ from django.conf import settings
 register = template.Library()
 	
 def record( record ):
-    t = template.loader.get_template('namesdb_public/list-object.html')
+    if record.get('model'):
+        t = template.loader.get_template(
+            f'namesdb_public/list-object-{record["model"]}.html'
+        )
+    else:
+        t = template.loader.get_template('namesdb_public/list-object.html')
     return t.render({'record':record})
 	
 def names_paginate( paginator ):
