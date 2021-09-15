@@ -209,6 +209,11 @@ FIELDS_PERSON = [
     'facilities', 'far_records', 'wra_records',
 ]
 
+SEARCH_EXCLUDE_FIELDS_PERSON = [
+    'birth_date', 'death_date', 'timestamp',  # can't search fulltext on dates
+    'facilities', 'far_records', 'wra_records', 'family',  # relation pointers
+]
+
 INCLUDE_FIELDS_PERSON = [
     'nr_id', 'family_name', 'given_name', 'given_name_alt', 'other_names',
     'middle_name', 'prefix_name', 'suffix_name', 'jp_name', 'preferred_name',
@@ -374,6 +379,11 @@ FIELDS_FARRECORD = [
     'person', 'timestamp',
 ]
 
+SEARCH_EXCLUDE_FIELDS_FARRECORD = [
+    'timestamp', # can't fulltext search on dates
+    'person',  # relation pointers
+]
+
 INCLUDE_FIELDS_FARRECORD = [
     'far_record_id', 'family_number', 'far_line_id', 'last_name', 'first_name',
     'other_names', 'date_of_birth', 'original_notes',
@@ -515,6 +525,11 @@ FIELDS_WRARECORD = [
     'highestgrade', 'language', 'religion', 'occupqual1', 'occupqual2',
     'occupqual3', 'occupotn1', 'occupotn2', 'wra_filenumber', 'person',
     'timestamp',
+]
+
+SEARCH_EXCLUDE_FIELDS_WRARECORD = [
+    'timestamp', # can't fulltext search on dates
+    'person',  # relation pointers
 ]
 
 INCLUDE_FIELDS_WRARECORD = [
@@ -673,10 +688,14 @@ FIELDS_BY_MODEL = {
     'wrarecord': FIELDS_WRARECORD,
 }
 
+SEARCH_INCLUDE_FIELDS_PERSON    = [x for x in FIELDS_PERSON    if (x not in SEARCH_EXCLUDE_FIELDS_PERSON)]
+SEARCH_INCLUDE_FIELDS_FARRECORD = [x for x in FIELDS_FARRECORD if (x not in SEARCH_EXCLUDE_FIELDS_FARRECORD)]
+SEARCH_INCLUDE_FIELDS_WRARECORD = [x for x in FIELDS_WRARECORD if (x not in SEARCH_EXCLUDE_FIELDS_WRARECORD)]
+
 SEARCH_INCLUDE_FIELDS = list(set(
-      [x for x in FIELDS_PERSON    if x not in EXCLUDE_FIELDS_PERSON   ]
-    + [x for x in FIELDS_FARRECORD if x not in EXCLUDE_FIELDS_FARRECORD]
-    + [x for x in FIELDS_WRARECORD if x not in EXCLUDE_FIELDS_WRARECORD]
+      SEARCH_INCLUDE_FIELDS_PERSON
+    + SEARCH_INCLUDE_FIELDS_FARRECORD
+    + SEARCH_INCLUDE_FIELDS_WRARECORD
 ))
 
 SEARCH_AGG_FIELDS = {}
