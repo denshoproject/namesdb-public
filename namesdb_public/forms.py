@@ -25,7 +25,7 @@ from ui import search
 #)['_source']
 # TODO should not be hard-coded - move to ddr-vocabs?
 FORMS_CHOICES = {
-    'm_camp-choices': [
+    'facility-choices': [
         ('4-amache', 'Amache'),
         ('3-gilariver', 'Gila River'),
         ('5-heartmountain', 'Heart Mountain'),
@@ -39,7 +39,7 @@ FORMS_CHOICES = {
     ]
 }
 FORMS_CHOICES_DEFAULT = {
-    'm_camp': [
+    'facility': [
         ('', 'All Camps'),
     ],
 }
@@ -85,14 +85,14 @@ class SearchForm(forms.Form):
                 }
             ),
         )
-        fields['m_camp'] = forms.ChoiceField(
+        fields['facility'] = forms.ChoiceField(
             required=False,
             widget=forms.Select(
                 attrs={
                     'class': 'form-control pointer',
                 }
             ),
-            choices=FORMS_CHOICES_DEFAULT['m_camp']
+            choices=FORMS_CHOICES_DEFAULT['facility']
         )
         
         # fill in options and doc counts from aggregations

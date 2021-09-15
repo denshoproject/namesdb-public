@@ -12,9 +12,9 @@ import requests
 
 from . import forms
 from . import models
-from ui import api
-from ui import docstore
-from ui import search
+from . import api
+from . import docstore
+from . import search
 
 PAGE_SIZE = 20
 CONTEXT = 3
@@ -144,13 +144,16 @@ def search_ui(request):
         context['searching'] = True
         
         searcher = search.Searcher()
+        params=request.GET.copy()
+        
         searcher.prepare(
-            params=request.GET.copy(),
-            params_allowlist=models.SEARCH_PARAM_ALLOWLIST,
-            search_models=models.SEARCH_MODELS,
-            fields=models.SEARCH_INCLUDE_FIELDS,
-            fields_nested=models.SEARCH_NESTED_FIELDS,
-            fields_agg=models.SEARCH_AGG_FIELDS,
+            params=params,
+            params_allowlist=['fulltext'] + models.SEARCH_INCLUDE_FIELDS_PERSON,
+            search_models=['namesperson'],
+            fields=models.SEARCH_INCLUDE_FIELDS_PERSON,
+            fields_nested=[],
+            #fields_agg=models.AGG_FIELDS_PERSON,
+            fields_agg={'facility':'facility'},
         )
         limit,offset = _limit_offset(request)
         results = searcher.execute(limit, offset)
