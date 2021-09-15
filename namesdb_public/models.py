@@ -258,6 +258,7 @@ class ListFamily(dsl.InnerDoc):
 
 class Person(Record):
     """Person record model
+    TODO review field types for aggs,filtering
     """
     nr_id                         = dsl.Keyword()
     family_name                   = dsl.Keyword()
@@ -425,6 +426,7 @@ class ListFamily(dsl.InnerDoc):
 
 class FarRecord(Record):
     """FarRecord model
+    TODO review field types for aggs,filtering
     """
     far_record_id           = dsl.Keyword()
     facility                = dsl.Keyword()
@@ -577,6 +579,7 @@ class ListFamily(dsl.InnerDoc):
 
 class WraRecord(Record):
     """WraRecord model
+    TODO review field types for aggs,filtering
     """
     wra_record_id     = dsl.Integer()
     facility          = dsl.Keyword()
