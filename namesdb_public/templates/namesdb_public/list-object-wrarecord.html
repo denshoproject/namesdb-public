@@ -1,9 +1,6 @@
 <div class="record">
-<a href="{{ record.absolute_url }}">
-{{ record.m_lastname }}
-{{ record.m_firstname }}
-</a>
-(
-{{ record.m_dataset }} {{ record.m_pseudoid }}
-)
+  <a href="{{ record.links.html }}">
+    {{ record.lastname | lower | capfirst }} {{ record.firstname | lower | capfirst }}
+  </a>
+({{ record.birthyear }} {{ record.familyno }} {{ record.facility }})
 </div>

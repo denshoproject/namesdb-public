@@ -130,6 +130,23 @@ def wrarecord(request, object_id, template_name='namesdb_public/wrarecord.html')
     })
 
 def search_ui(request):
+    model = 'person'
+    if model == 'person':
+        search_models = ['namesperson']
+        params_allowlist = models.SEARCH_INCLUDE_FIELDS_PERSON
+        search_include_fields = models.SEARCH_INCLUDE_FIELDS_PERSON
+        agg_fields = models.AGG_FIELDS_PERSON
+    elif model == 'farrecord':
+        search_models = ['namesfarrecord']
+        params_allowlist = models.SEARCH_INCLUDE_FIELDS_FARRECORD
+        search_include_fields = models.SEARCH_INCLUDE_FIELDS_FARRECORD
+        agg_fields = models.AGG_FIELDS_FARRECORD
+    elif model == 'wrarecord':
+        search_models = ['nameswrarecord']
+        params_allowlist = models.SEARCH_INCLUDE_FIELDS_WRARECORD
+        search_include_fields = models.INCLUDE_FIELDS_WRARECORD
+        agg_fields = models.AGG_FIELDS_WRARECORD
+    
     api_url = '%s?%s' % (
         _mkurl(request, reverse('names-api-search')),
         request.META['QUERY_STRING']
@@ -148,11 +165,11 @@ def search_ui(request):
         
         searcher.prepare(
             params=params,
-            params_allowlist=['fulltext'] + models.SEARCH_INCLUDE_FIELDS_PERSON,
-            search_models=['namesperson'],
-            fields=models.SEARCH_INCLUDE_FIELDS_PERSON,
+            params_allowlist=['fulltext'] + params_allowlist,
+            search_models=search_models,
+            fields=search_include_fields,
             fields_nested=[],
-            fields_agg=models.AGG_FIELDS_PERSON,
+            fields_agg=agg_fields,
         )
         limit,offset = _limit_offset(request)
         results = searcher.execute(limit, offset)
