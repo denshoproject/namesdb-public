@@ -225,13 +225,14 @@ INCLUDE_FIELDS_PERSON = [
 EXCLUDE_FIELDS_PERSON = []
 
 AGG_FIELDS_PERSON = {
-    'birth_place': 'birth_place',
     'citizenship': 'citizenship',
     'gender': 'gender',
     'preexclusion_residence_city': 'preexclusion_residence_city',
     'preexclusion_residence_state': 'preexclusion_residence_state',
     'postexclusion_residence_city': 'postexclusion_residence_city',
     'postexclusion_residence_state': 'postexclusion_residence_state',
+    'exclusion_order_title': 'exclusion_order_title',
+    'exclusion_order_id': 'exclusion_order_id',
 }
 
 class ListFacility(dsl.InnerDoc):

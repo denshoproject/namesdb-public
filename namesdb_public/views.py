@@ -152,8 +152,7 @@ def search_ui(request):
             search_models=['namesperson'],
             fields=models.SEARCH_INCLUDE_FIELDS_PERSON,
             fields_nested=[],
-            #fields_agg=models.AGG_FIELDS_PERSON,
-            fields_agg={'facility':'facility'},
+            fields_agg=models.AGG_FIELDS_PERSON,
         )
         limit,offset = _limit_offset(request)
         results = searcher.execute(limit, offset)
