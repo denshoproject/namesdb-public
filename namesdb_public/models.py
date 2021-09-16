@@ -243,43 +243,43 @@ class ListFacility(dsl.InnerDoc):
 
 class ListFarRecord(dsl.InnerDoc):
     far_record_id = dsl.Keyword()
-    last_name = dsl.Keyword()
-    first_name = dsl.Keyword()
+    last_name = dsl.Text()
+    first_name = dsl.Text()
 
 class ListWraRecord(dsl.InnerDoc):
     wra_record_id = dsl.Keyword()
-    lastname = dsl.Keyword()
-    firstname = dsl.Keyword()
-    middleinitial = dsl.Keyword()
+    lastname = dsl.Text()
+    firstname = dsl.Text()
+    middleinitial = dsl.Text()
 
 class ListFamily(dsl.InnerDoc):
     wra_family_no = dsl.Keyword()
     nr_id = dsl.Keyword()
-    preferred_name = dsl.Keyword()
+    preferred_name = dsl.Text()
 
 class Person(Record):
     """Person record model
     TODO review field types for aggs,filtering
     """
     nr_id                         = dsl.Keyword()
-    family_name                   = dsl.Keyword()
-    given_name                    = dsl.Keyword()
+    family_name                   = dsl.Text()
+    given_name                    = dsl.Text()
     given_name_alt                = dsl.Text()
     other_names                   = dsl.Text()
-    middle_name                   = dsl.Keyword()
-    prefix_name                   = dsl.Keyword()
-    suffix_name                   = dsl.Keyword()
-    jp_name                       = dsl.Keyword()
-    preferred_name                = dsl.Keyword()
+    middle_name                   = dsl.Text()
+    prefix_name                   = dsl.Text()
+    suffix_name                   = dsl.Text()
+    jp_name                       = dsl.Text()
+    preferred_name                = dsl.Text()
     birth_date                    = dsl.Date()
-    birth_date_text               = dsl.Keyword()
-    birth_place                   = dsl.Keyword()
+    birth_date_text               = dsl.Text()
+    birth_place                   = dsl.Text()
     death_date                    = dsl.Date()
-    death_date_text               = dsl.Keyword()
-    wra_family_no                 = dsl.Keyword()
-    wra_individual_no             = dsl.Keyword()
+    death_date_text               = dsl.Text()
+    wra_family_no                 = dsl.Text()
+    wra_individual_no             = dsl.Text()
     citizenship                   = dsl.Keyword()
-    alien_registration_no         = dsl.Keyword()
+    alien_registration_no         = dsl.Text()
     gender                        = dsl.Keyword()
     preexclusion_residence_city   = dsl.Keyword()
     preexclusion_residence_state  = dsl.Keyword()
@@ -417,13 +417,13 @@ AGG_FIELDS_FARRECORD = {
 
 class NestedPerson(dsl.InnerDoc):
     nr_id = dsl.Keyword()
-    preferred_name = dsl.Keyword()
+    preferred_name = dsl.Text()
 
 class ListFamily(dsl.InnerDoc):
     family_number = dsl.Keyword()
     far_record_id = dsl.Keyword()
-    last_name = dsl.Keyword()
-    first_name = dsl.Keyword()
+    last_name = dsl.Text()
+    first_name = dsl.Text()
 
 class FarRecord(Record):
     """FarRecord model
@@ -434,9 +434,9 @@ class FarRecord(Record):
     original_order          = dsl.Keyword()
     family_number           = dsl.Keyword()
     far_line_id             = dsl.Keyword()
-    last_name               = dsl.Keyword()
-    first_name              = dsl.Keyword()
-    other_names             = dsl.Keyword()
+    last_name               = dsl.Text()
+    first_name              = dsl.Text()
+    other_names             = dsl.Text()
     date_of_birth           = dsl.Keyword()
     year_of_birth           = dsl.Keyword()
     sex                     = dsl.Keyword()
@@ -461,7 +461,7 @@ class FarRecord(Record):
     camp_address_barracks   = dsl.Keyword()
     camp_address_room       = dsl.Keyword()
     reference               = dsl.Keyword()
-    original_notes          = dsl.Keyword()
+    original_notes          = dsl.Text()
     person                  = dsl.Nested(NestedPerson)
     family                  = dsl.Nested(ListFamily)
     timestamp               = dsl.Date()
@@ -584,15 +584,15 @@ class WraRecord(Record):
     """
     wra_record_id     = dsl.Integer()
     facility          = dsl.Keyword()
-    lastname          = dsl.Keyword()
-    firstname         = dsl.Keyword()
-    middleinitial     = dsl.Keyword()
+    lastname          = dsl.Text()
+    firstname         = dsl.Text()
+    middleinitial     = dsl.Text()
     birthyear         = dsl.Keyword()
     gender            = dsl.Keyword()
     originalstate     = dsl.Keyword()
     familyno          = dsl.Keyword()
     individualno      = dsl.Keyword()
-    notes             = dsl.Keyword()
+    notes             = dsl.Text()
     assemblycenter    = dsl.Keyword()
     originaladdress   = dsl.Keyword()
     birthcountry      = dsl.Keyword()
