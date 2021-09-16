@@ -536,7 +536,8 @@ SEARCH_EXCLUDE_FIELDS_WRARECORD = [
 ]
 
 INCLUDE_FIELDS_WRARECORD = [
-    'wra_record_id', 'lastname', 'firstname', 'middleinitial',
+    'wra_record_id',
+    'lastname', 'firstname', 'middleinitial',
     'familyno', 'individualno',
 ]
 
@@ -582,7 +583,7 @@ class WraRecord(Record):
     """WraRecord model
     TODO review field types for aggs,filtering
     """
-    wra_record_id     = dsl.Integer()
+    wra_record_id     = dsl.Keyword()
     facility          = dsl.Keyword()
     lastname          = dsl.Text()
     firstname         = dsl.Text()
