@@ -74,31 +74,27 @@ class SearchForm(forms.Form):
         self.fields = self.construct_form(self.search_results)
 
     def construct_form(self, search_results):
-        
-        fields = OrderedDict()
-        fields['fulltext'] = forms.CharField(
-            required=False,
-            widget=forms.TextInput(
-                attrs={
-                    'class': 'form-control',
-                    'placeholder': 'Search the Registry...',
-                }
+        fields = [
+            (
+                'fulltext',
+                forms.CharField(
+                    max_length=255,
+                    required=False,
+                    widget=forms.TextInput(
+                        attrs={
+                            'id': 'id_query',
+                            'class': 'form-control',
+                            'placeholder': 'Search...',
+                        }
+                    ),
+                )
             ),
-        )
-        fields['facility'] = forms.ChoiceField(
-            required=False,
-            widget=forms.Select(
-                attrs={
-                    'class': 'form-control pointer',
-                }
-            ),
-            choices=FORMS_CHOICES_DEFAULT['facility']
-        )
+        ]
         
         # fill in options and doc counts from aggregations
         if search_results and search_results.aggregations:
             for fieldname,aggs in search_results.aggregations.items():
-                choices = deepcopy(FORMS_CHOICES_DEFAULT[fieldname])
+                choices = []
                 for item in aggs:
                     try:
                         label = FORMS_CHOICE_LABELS[fieldname][item['key']]
@@ -109,6 +105,17 @@ class SearchForm(forms.Form):
                         '%s (%s)' % (label, item['doc_count'])
                     )
                     choices.append(choice)
-                fields[fieldname].choices = choices
+                if choices:
+                    fields.append((
+                        fieldname,
+                        forms.MultipleChoiceField(
+                            label=search.SEARCH_FORM_LABELS.get(
+                                fieldname, fieldname),
+                            choices=choices,
+                            required=False,
+                        ),
+                    ))
         
+        # Django Form object takes an OrderedDict rather than list
+        fields = OrderedDict(fields)
         return fields
