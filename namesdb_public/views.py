@@ -179,7 +179,7 @@ def search_ui(request):
     else:
         context['form'] = forms.SearchForm()
 
-    return render(request, 'namesdb_public/index.html', context)
+    return render(request, 'namesdb_public/search.html', context)
 
 def _mkurl(request, path, query=None):
     return urlunparse((
