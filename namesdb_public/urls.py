@@ -69,5 +69,5 @@ urlpatterns = [
     path('persons/', views.persons, name='namesdb-persons'),
     path('farrecords/', views.farrecords, name='namesdb-farrecords'),
     path('wrarecords/', views.wrarecords, name='namesdb-wrarecords'),
-    path('', views.search_ui, name='namesdb-index'),
+    path('', views.index, name='namesdb-index'),
 ]

@@ -29,71 +29,17 @@ NON_FILTER_FIELDS = [
 
 
 def index(request, template_name='namesdb_public/index.html'):
-    """Simplified index page with just query and camp fields.
-    """
-    kwargs = [(key,val) for key,val in request.GET.items()]
-    kwargs_values = [val for val in request.GET.values() if val]
-    thispage = int(request.GET.get('page', 1))
-    pagesize = int(request.GET.get('pagesize', PAGE_SIZE))
-    
-    # All the filter fields are MultipleChoiceFields, which does not
-    # support an "empty_label" choice.  Unfortunately, the UI design
-    # makes use of a <select> with a blank "All camps" default.
-    # So... make a copy of request.GET and forcibly remove 'm_camp'
-    # if the "All camps" choice was selected.
-    local_GET = request.GET.copy()
-    if ('m_camp' in local_GET.keys()) and not local_GET.get('m_camp'):
-        local_GET.pop('m_camp')
-    
-    search = None
-    body = {}
-    m_camp_selected = None
-    paginator = None
-    if kwargs_values:
-        form = forms.SearchForm(
-            local_GET,
-            hosts=settings.NAMESDB_DOCSTORE_HOSTS,
-        )
-        if form.is_valid():
-            filters = form.cleaned_data
-            query = filters.pop('query')
-            start,end = models.Paginator.start_end(thispage, pagesize)
-            search = models.search(
-                settings.NAMESDB_DOCSTORE_HOSTS,
-                query=query,
-                filters=filters,
-                start=start,
-                pagesize=pagesize,
-            )
-            body = search.to_dict()
-            response = search.execute()
-            m_camp_selected = filters['m_camp']
-            #form.update_doc_counts(response)
-            paginator = models.Paginator(
-                response, thispage, pagesize, CONTEXT, request.META['QUERY_STRING']
-            )
-    else:
-        form = forms.SearchForm(
-            hosts=settings.NAMESDB_DOCSTORE_HOSTS,
-        )
-    m_camp_choices = form.fields['m_camp'].choices
     return render(request, template_name, {
-        'kwargs': kwargs,
-        'form': form,
-        'm_camp_choices': m_camp_choices,
-        'm_camp_selected': m_camp_selected,
-        'body': json.dumps(body, indent=4, separators=(',', ': '), sort_keys=True),
-        'paginator': paginator,
     })
 
 def persons(request, template_name='namesdb_public/persons.html'):
-    assert False
+    return search_ui(request, 'person')
 
 def farrecords(request, template_name='namesdb_public/farrecords.html'):
-    assert False
+    return search_ui(request, 'farrecord')
 
 def wrarecords(request, template_name='namesdb_public/wrarecords.html'):
-    assert False
+    return search_ui(request, 'wrarecord')
 
 def person(request, naan, noid, template_name='namesdb_public/person.html'):
     object_id = '/'.join([naan, noid])
@@ -129,8 +75,7 @@ def wrarecord(request, object_id, template_name='namesdb_public/wrarecord.html')
         'record': r.json(),
     })
 
-def search_ui(request):
-    model = 'person'
+def search_ui(request, model=None):
     if model == 'person':
         search_models = ['namesperson']
         params_allowlist = models.SEARCH_INCLUDE_FIELDS_PERSON
@@ -152,6 +97,7 @@ def search_ui(request):
         request.META['QUERY_STRING']
     )
     context = {
+        'model': model,
         'searching': False,
         'filters': True,
         'api_url': api_url,
