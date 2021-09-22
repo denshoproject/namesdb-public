@@ -1,6 +1,9 @@
 <div class="record">
-  <a href="{{ record.links.html }}">
-    {{ record.lastname | lower | capfirst }} {{ record.firstname | lower | capfirst }}
-  </a>
-({{ record.birthyear }} {{ record.familyno }} {{ record.facility }})
+  <p>
+    <a href="{{ record.links.html }}">
+      {{ record.lastname | lower | capfirst }} {{ record.firstname | lower | capfirst }}
+    </a>
+    ({{ record.birthyear }} {{ record.familyno }} {{ record.facility }})<br/>
+    {{ record.highlights|safe }}
+  </p>
 </div>

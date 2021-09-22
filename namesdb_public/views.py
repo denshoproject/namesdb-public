@@ -81,16 +81,19 @@ def search_ui(request, model=None):
         params_allowlist = models.SEARCH_INCLUDE_FIELDS_PERSON
         search_include_fields = models.SEARCH_INCLUDE_FIELDS_PERSON
         agg_fields = models.AGG_FIELDS_PERSON
+        highlight_fields = models.HIGHLIGHT_FIELDS_PERSON
     elif model == 'farrecord':
         search_models = ['namesfarrecord']
         params_allowlist = models.SEARCH_INCLUDE_FIELDS_FARRECORD
         search_include_fields = models.SEARCH_INCLUDE_FIELDS_FARRECORD
         agg_fields = models.AGG_FIELDS_FARRECORD
+        highlight_fields = models.HIGHLIGHT_FIELDS_FARRECORD
     elif model == 'wrarecord':
         search_models = ['nameswrarecord']
         params_allowlist = models.SEARCH_INCLUDE_FIELDS_WRARECORD
         search_include_fields = models.INCLUDE_FIELDS_WRARECORD
         agg_fields = models.AGG_FIELDS_WRARECORD
+        highlight_fields = models.HIGHLIGHT_FIELDS_WRARECORD
     
     api_url = '%s?%s' % (
         _mkurl(request, reverse('names-api-search')),
@@ -116,6 +119,7 @@ def search_ui(request, model=None):
             fields=search_include_fields,
             fields_nested=[],
             fields_agg=agg_fields,
+            highlight_fields=highlight_fields,
         )
         limit,offset = _limit_offset(request)
         results = searcher.execute(limit, offset)

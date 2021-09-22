@@ -235,6 +235,12 @@ AGG_FIELDS_PERSON = {
     'exclusion_order_id': 'exclusion_order_id',
 }
 
+HIGHLIGHT_FIELDS_PERSON = [
+    'birth_date_text', 'birth_place',
+    'family_name', 'given_name', 'other_names', 'preferred_name',
+    'preexclusion_residence_city', 'postexclusion_residence_city',
+]
+
 class ListFacility(dsl.InnerDoc):
     person_nr_id = dsl.Keyword()
     facility_id = dsl.Keyword()
@@ -415,6 +421,9 @@ AGG_FIELDS_FARRECORD = {
     'camp_address_room': 'camp_address_room',
 }
 
+HIGHLIGHT_FIELDS_FARRECORD = [
+]
+
 class NestedPerson(dsl.InnerDoc):
     nr_id = dsl.Keyword()
     preferred_name = dsl.Text()
@@ -572,6 +581,9 @@ AGG_FIELDS_WRARECORD = {
     'occupotn1': 'occupotn1',
     'occupotn2': 'occupotn2',
 }
+
+HIGHLIGHT_FIELDS_WRARECORD = [
+]
 
 class ListFamily(dsl.InnerDoc):
     familyno = dsl.Keyword()
@@ -814,7 +826,7 @@ def format_object_detail(document, request, listitem=False):
     
     return d
 
-def format_person(document, request, listitem=False):
+def format_person(document, request, highlights=None, listitem=False):
     oid = document['nr_id']
     naan,noid = oid.split('/')
     model = 'person'
@@ -831,9 +843,10 @@ def format_person(document, request, listitem=False):
     for field in FIELDS_BY_MODEL[model]:
         if document.get(field):
             d[field] = document.pop(field)
+    d['highlights'] = join_highlight_text(model, highlights)
     return d
 
-def format_farrecord(document, request, listitem=False):
+def format_farrecord(document, request, highlights=None, listitem=False):
     oid = document['far_record_id']
     model = 'farrecord'
     d = OrderedDict()
@@ -849,9 +862,10 @@ def format_farrecord(document, request, listitem=False):
     for field in FIELDS_BY_MODEL[model]:
         if document.get(field):
             d[field] = document.pop(field)
+    d['highlights'] = join_highlight_text(model, highlights)
     return d
 
-def format_wrarecord(document, request, listitem=False):
+def format_wrarecord(document, request, highlights=None, listitem=False):
     oid = document['wra_record_id']
     model = 'wrarecord'
     d = OrderedDict()
@@ -867,7 +881,19 @@ def format_wrarecord(document, request, listitem=False):
     for field in FIELDS_BY_MODEL[model]:
         if document.get(field):
             d[field] = document.pop(field)
+    d['highlights'] = join_highlight_text(model, highlights)
     return d
+
+def join_highlight_text(model, highlights):
+    """Concatenate highlight text for various fields into one str
+    """
+    snippets = []
+    for field in FIELDS_BY_MODEL[model]:
+        if hasattr(highlights, field):
+            vals = ' / '.join(getattr(highlights,field))
+            text = f'{field}: "{vals}"'
+            snippets.append(text)
+    return ', '.join(snippets)
 
 FORMATTERS = {
     'namesperson':    format_person,

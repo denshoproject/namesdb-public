@@ -302,9 +302,13 @@ class SearchResults(object):
             odict.pop('index')
             if not odict:
                 continue
+            highlights = None
+            if hasattr(o.meta, 'highlight'):
+                highlights = getattr(o.meta, 'highlight')
             data['objects'].append(format_function(
                 document=odict,
                 request=request,
+                highlights=highlights,
                 listitem=True,
             ))
         # pad after
@@ -367,7 +371,8 @@ class Searcher(object):
             search_models=SEARCH_MODELS,
             fields=SEARCH_INCLUDE_FIELDS,
             fields_nested=SEARCH_NESTED_FIELDS,
-            fields_agg=SEARCH_AGG_FIELDS
+            fields_agg=SEARCH_AGG_FIELDS,
+            highlight_fields=[],
     ):
         """Assemble elasticsearch_dsl.Search object
         
@@ -377,6 +382,7 @@ class Searcher(object):
         @param fields:           list Retrieve these fields (SEARCH_INCLUDE_FIELDS)
         @param fields_nested:    list See SEARCH_NESTED_FIELDS
         @param fields_agg:       dict See SEARCH_AGG_FIELDS
+        @param highlight_fields: list
         @returns: 
         """
 
@@ -442,6 +448,10 @@ class Searcher(object):
             elif (key in params_allowlist) and val:
                 s = s.filter('term', **{key: val})
                 # 'term' search is for single choice, not multiple choice fields(?)
+        
+        # highlighting
+        for field in highlight_fields:
+            s = s.highlight(field, fragment_size=50)
         
         # aggregations
         for fieldname,field in fields_agg.items():
