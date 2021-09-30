@@ -8,8 +8,6 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-import requests
-
 from . import forms
 from . import models
 from . import api
@@ -43,36 +41,18 @@ def wrarecords(request, template_name='namesdb_public/wrarecords.html'):
 
 def person(request, naan, noid, template_name='namesdb_public/person.html'):
     object_id = '/'.join([naan, noid])
-    url = _mkurl(
-        request, reverse('namesdb-api-person', args=[naan, noid])
-    )
-    r = requests.get(url)
-    if not r.status_code == 200:
-        raise Http404
     return render(request, template_name, {
-        'record': r.json(),
+        'record': models.Person.get(object_id, request),
     })
 
 def farrecord(request, object_id, template_name='namesdb_public/farrecord.html'):
-    url = _mkurl(
-        request, reverse('namesdb-api-farrecord', args=[object_id])
-    )
-    r = requests.get(url)
-    if not r.status_code == 200:
-        raise Http404
     return render(request, template_name, {
-        'record': r.json(),
+        'record': models.FarRecord.get(object_id, request),
     })
 
 def wrarecord(request, object_id, template_name='namesdb_public/wrarecord.html'):
-    url = _mkurl(
-        request, reverse('namesdb-api-wrarecord', args=[object_id])
-    )
-    r = requests.get(url)
-    if not r.status_code == 200:
-        raise Http404
     return render(request, template_name, {
-        'record': r.json(),
+        'record': models.WraRecord.get(object_id, request),
     })
 
 def search_ui(request, model=None):
