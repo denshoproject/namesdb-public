@@ -96,7 +96,7 @@ def search_ui(request, model=None):
         highlight_fields = models.HIGHLIGHT_FIELDS_WRARECORD
     
     api_url = '%s?%s' % (
-        _mkurl(request, reverse('names-api-search')),
+        internal_url(request, reverse('names-api-search')),
         request.META['QUERY_STRING']
     )
     context = {
@@ -148,10 +148,13 @@ def search_ui(request, model=None):
 
     return render(request, 'namesdb_public/search.html', context)
 
-def _mkurl(request, path, query=None):
+def internal_url(request, path, query=None):
+    """Internal version of reversed URL
+    """
+    port = request.META.get('SERVER_PORT')
     return urlunparse((
-        request.META['wsgi.url_scheme'],
-        request.META.get('HTTP_HOST'),
+        'http',
+        f'127.0.0.1:{port}',
         path, None, query, None
     ))
 
