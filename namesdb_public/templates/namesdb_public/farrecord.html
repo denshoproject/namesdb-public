@@ -4,7 +4,7 @@
 {% block title %}{{ record.last_name }}, {{ record.first_name }} | Names{% endblock %}
 
 {% block breadcrumbs %}{{ block.super }}
-<li><a href="{% url "names-index" %}">Names Registry</a></li>
+<li><a href="{% url "namesdb-index" %}">Names Database</a></li>
 <li><a href="{% url "namesdb-farrecords" %}">FAR</a></li>
 <li>{{ record.last_name }}, {{ record.first_name }}</li>
 {% endblock breadcrumbs %}

@@ -4,7 +4,7 @@
 {% block title %}{{ record.m_lastname }}, {{ record.m_firstname }} | Names{% endblock %}
 
 {% block breadcrumbs %}{{ block.super }}
-<li><a href="{% url "names-index" %}">Names Registry</a></li>
+<li><a href="{% url "namesdb-index" %}">Names Database</a></li>
 <li>{{ record.m_lastname }}, {{ record.m_firstname }}</li>
 {% endblock breadcrumbs %}
 
@@ -25,7 +25,7 @@
 
 <p class="pull-right">
 <a href="#" role="button" class="back btn btn-xs btn-primary"><i class="fa fa-reply"></i> Back to results</a>
-<a href="{% url "names-index" %}" role="button" class="btn btn-xs btn-primary"><i class="fa fa-search"></i> New search</a>
+<a href="{% url "namesdb-index" %}" role="button" class="btn btn-xs btn-primary"><i class="fa fa-search"></i> New search</a>
 </p>
 
 <div class="table-responsive">
@@ -133,7 +133,7 @@
 
 <p class="pull-right">
 <a href="#" role="button" class="back btn btn-xs btn-primary"><i class="fa fa-reply"></i> Back to results</a>
-<a href="{% url "names-index" %}" role="button" class="btn btn-xs btn-primary"><i class="fa fa-search"></i> New search</a>
+<a href="{% url "namesdb-index" %}" role="button" class="btn btn-xs btn-primary"><i class="fa fa-search"></i> New search</a>
 </p>
 
 
