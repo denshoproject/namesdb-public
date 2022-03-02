@@ -15,7 +15,7 @@ MAX_SIZE = 1000
 
 class Docstore():
 
-    def __init__(self, hosts=settings.DOCSTORE_HOSTS, connection=None):
+    def __init__(self, hosts=settings.DOCSTORE_HOST, connection=None):
         self.hosts = hosts
         if connection:
             self.es = connection
@@ -37,7 +37,7 @@ class Docstore():
         try:
             self.es.cluster.health()
         except TransportError:
-            msg = f'Elasticsearch cluster unavailable: {settings.DOCSTORE_HOSTS}'
+            msg = f'Elasticsearch cluster unavailable: {settings.DOCSTORE_HOST}'
             logger.critical(msg)
             #sys.exit(1)
     
