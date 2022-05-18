@@ -1,1 +1,3 @@
-requests
+# Third-party libs and Django apps used by namesdb-public
+
+git+https://github.com/denshoproject/densho-elastictools.git

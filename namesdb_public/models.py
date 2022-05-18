@@ -6,20 +6,23 @@ logger = logging.getLogger(__name__)
 import os
 import sys
 
-from elasticsearch.exceptions import NotFoundError
-import elasticsearch_dsl as dsl
 logging.getLogger("elasticsearch").setLevel(logging.WARNING)
+
+from django.conf import settings
 from rest_framework.exceptions import NotFound
 from rest_framework.reverse import reverse
 
+from elastictools import docstore
+from elastictools.docstore import elasticsearch_dsl as dsl
+
 from . import definitions
-from . import docstore
+
+INDEX_PREFIX = 'names'
 
 # see if cluster is available, quit with nice message if not
-docstore.Docstore().start_test()
+docstore.Docstore(INDEX_PREFIX, settings.DOCSTORE_HOST, settings).start_test()
 
-# set default hosts and index
-DOCSTORE = docstore.Docstore()
+MAX_SIZE = 1000
 
 MODELS = [
     'person',
@@ -27,8 +30,8 @@ MODELS = [
     'wrarecord',
 ]
 SEARCH_MODELS = MODELS
-DOCTYPES = [f'{docstore.INDEX_PREFIX}{model}' for model in MODELS]
-MODELS_DOCTYPES = {model: f'{docstore.INDEX_PREFIX}{model}' for model in MODELS}
+DOCTYPES = [f'{INDEX_PREFIX}{model}' for model in MODELS]
+MODELS_DOCTYPES = {model: f'{INDEX_PREFIX}{model}' for model in MODELS}
 
 
 def _hitvalue(hit, field):
@@ -301,7 +304,7 @@ class Person(Record):
     
     class Index:
         model = 'person'
-        name = f'{docstore.INDEX_PREFIX}person'
+        name = f'{INDEX_PREFIX}person'
     
     def __repr__(self):
         return f'<Person {self.nr_id}>'
@@ -368,7 +371,7 @@ class PersonFacility(Record):
     
     class Index:
         model = 'personfacility'
-        name = f'{docstore.INDEX_PREFIX}personfacility'
+        name = f'{INDEX_PREFIX}personfacility'
     
     def __repr__(self):
         return f'<PersonFacility {self.person_id},{self.facility_id}>'
@@ -477,7 +480,7 @@ class FarRecord(Record):
     
     class Index:
         model = 'farrecord'
-        name = f'{docstore.INDEX_PREFIX}farrecord'
+        name = f'{INDEX_PREFIX}farrecord'
     
     def __repr__(self):
         return f'<FarRecord {self.far_record_id}>'
@@ -637,7 +640,7 @@ class WraRecord(Record):
     
     class Index:
         model = 'wrarecord'
-        name = f'{docstore.INDEX_PREFIX}wrarecord'
+        name = f'{INDEX_PREFIX}wrarecord'
     
     def __repr__(self):
         return f'<WraRecord {self.wra_record_id}>'
@@ -688,9 +691,9 @@ class WraRecord(Record):
 
 
 DOCTYPES_BY_MODEL = {
-    'person':    f'{docstore.INDEX_PREFIX}person',
-    'farrecord': f'{docstore.INDEX_PREFIX}farrecord',
-    'wrarecord': f'{docstore.INDEX_PREFIX}wrarecord',
+    'person':    f'{INDEX_PREFIX}person',
+    'farrecord': f'{INDEX_PREFIX}farrecord',
+    'wrarecord': f'{INDEX_PREFIX}wrarecord',
 }
 
 ELASTICSEARCH_CLASSES_BY_MODEL = {
@@ -722,7 +725,9 @@ for fieldset in [AGG_FIELDS_PERSON, AGG_FIELDS_FARRECORD, AGG_FIELDS_WRARECORD]:
 
 
 def docstore_object(request, model, oid):
-    data = DOCSTORE.es.get(
+    data = docstore.Docstore(
+        INDEX_PREFIX, settings.DOCSTORE_HOST, settings
+    ).es.get(
         index=MODELS_DOCTYPES[model],
         id=oid
     )
@@ -746,7 +751,7 @@ def format_object_detail(document, request, listitem=False):
             oid = document['nr_id']
             model = 'namesperson'
     if model:
-        model = model.replace(docstore.INDEX_PREFIX, '')
+        model = model.replace(INDEX_PREFIX, '')
     # accomodate naan/noids
     if '/' in oid:
         naan,noid = oid.split('/')
