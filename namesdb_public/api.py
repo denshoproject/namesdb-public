@@ -2,8 +2,6 @@ from collections import OrderedDict
 
 from django.conf import settings
 
-from elasticsearch import Elasticsearch
-
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request as RestRequest
@@ -13,12 +11,8 @@ from rest_framework.views import APIView
 
 from django.http.request import HttpRequest
 
-from . import docstore
 from . import search
 from . import models
-
-# set default hosts and index
-DOCSTORE = docstore.Docstore()
 
 DEFAULT_LIMIT = 25
 
@@ -56,7 +50,7 @@ def persons(request, format=None):
     """List multiple Persons with filtering by most fields (exact values)
     """
     filters = _list_filters(request)
-    return _list(request, search.model_objects(
+    return _list(request, _model_objects(
         request, ['person'], filters, sort_fields=['id']
     ))
 
@@ -65,7 +59,7 @@ def farrecords(request, format=None):
     """List multiple FarRecords with filtering by most fields (exact values)
     """
     filters = _list_filters(request)
-    return _list(request, search.model_objects(
+    return _list(request, _model_objects(
         request, ['farrecord'], filters, sort_fields=['id']
     ))
 
@@ -74,7 +68,7 @@ def wrarecords(request, format=None):
     """List multiple WraRecords with filtering by most fields (exact values)
     """
     filters = _list_filters(request)
-    return _list(request, search.model_objects(
+    return _list(request, _model_objects(
         request, ['wrarecord'], filters, sort_fields=['id']
     ))
 
@@ -178,3 +172,45 @@ class Search(APIView):
         )
         aggs = results.pop('aggregations')
         return Response(results)
+
+
+def model_objects(
+        request, modelnames, filters={}, sort_fields=[],
+        fields=models.SEARCH_INCLUDE_FIELDS, limit=DEFAULT_LIMIT, offset=0,
+        just_count=False
+):
+    """Return all documents in MODEL index (paged)
+    
+    Returns a paged list with count/prev/next metadata
+    
+    @param request: Django request object.
+    @param modelnames: list
+    @param sort_fields: list
+    @param fields: list
+    @param limit: int
+    @param offset: int
+    @param just_count: boolean
+    @returns: dict
+    """
+    ds = docstore.Docstore(INDEX_PREFIX, settings.DOCSTORE_HOST, settings)
+    indices = ','.join([ds.index_name(model) for model in modelnames])
+    params={
+        'match_all': {},
+        'sort': sort_fields,
+    }
+    if filters:
+        for key,val in filters.items():
+            params[key] = val
+    searcher = Searcher()
+    searcher.prepare(
+        params=params,
+        search_models=indices,
+        fields=fields,
+        fields_nested=[],
+        fields_agg={},
+    )
+    s = searcher.s.to_dict()
+    results = searcher.execute(limit, offset)
+    return results.ordered_dict(
+        request, format_functions=models.FORMATTERS
+    )
