@@ -10,33 +10,50 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
+import configparser
 import os
+from pathlib import Path
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from elastictools import docstore
 
+BASE_DIR = Path(__file__).absolute().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
+CONFIG_FILES = [
+    '/etc/ddr/namespub.cfg',
+    '/etc/ddr/namespub-local.cfg'
+]
+config = configparser.ConfigParser()
+configs_read = config.read(CONFIG_FILES)
+if not configs_read:
+    raise Exception('No config file!')
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '-lge1-ymkv)eo8_$o(28xf&t@!hcpwm@+zl#qi1&#wc5#ffb7d'
+SECRET_KEY = config.get('security', 'secret_key')
+DEBUG = config.getboolean('debug', 'debug')
+ALLOWED_HOSTS = [
+    host.strip() for host in config.get('security', 'allowed_hosts').split(',')
+]
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
-# Application definition
+# Elasticsearch
+DOCSTORE_HOST = config.get('database', 'docstore_host')
+DOCSTORE_SSL_CERTFILE = config.get('database', 'docstore_ssl_certfile')
+DOCSTORE_USERNAME = 'elastic'
+DOCSTORE_PASSWORD = config.get('database', 'docstore_password')
+_docstore_clusters = config.get('database', 'docstore_clusters')
+DOCSTORE_CLUSTER = docstore.cluster(_docstore_clusters, DOCSTORE_HOST)
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    #'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #
+    'bootstrap_pagination',
+    'drf_yasg',
+    'rest_framework',
+    #
+    'namespub',
 ]
 
 MIDDLEWARE = [
@@ -49,12 +66,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'namessite.urls'
+ROOT_URLCONF = 'namespub.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -69,21 +86,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'namessite.wsgi.application'
 
-
-# Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+print(DATABASES['default']['NAME'])
 
-
-# Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -100,21 +112,14 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+TIME_ZONE='America/Los_Angeles'
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
-
-STATIC_URL = '/static/'
+STATIC_ROOT = config.get('assets', 'static_root')
+STATIC_URL='/static/'
