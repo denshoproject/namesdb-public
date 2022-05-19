@@ -33,6 +33,10 @@ SEARCH_MODELS = MODELS
 DOCTYPES = [f'{INDEX_PREFIX}{model}' for model in MODELS]
 MODELS_DOCTYPES = {model: f'{INDEX_PREFIX}{model}' for model in MODELS}
 
+SEARCH_FORM_LABELS = {
+    'm_camp': 'Camp',
+}
+
 
 def _hitvalue(hit, field):
     """Extract list-wrapped values from their lists.

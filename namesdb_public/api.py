@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 
 from django.http.request import HttpRequest
 
-from . import search
+from elastictools import search
 from . import models
 
 DEFAULT_LIMIT = 25

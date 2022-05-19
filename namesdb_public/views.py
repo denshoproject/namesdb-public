@@ -8,11 +8,12 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
+from elastictools import docstore
+from elastictools import search
+
 from . import forms
 from . import models
 from . import api
-from . import docstore
-from . import search
 
 PAGE_SIZE = 20
 CONTEXT = 3
