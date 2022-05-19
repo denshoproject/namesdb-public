@@ -13,7 +13,9 @@
 <section class="container">
 
   <h2>
-    <strong>{{ record.last_name }}, {{ record.first_name }}</strong>
+    <a href="{% url "namespub-index" %}">Names Registry</a>
+    - <a href="{% url "namespub-farrecords" %}">farrecord</a>
+    - <strong>{{ record.last_name }}, {{ record.first_name }}</strong>
     <small class="font300">{{ record.far_record_id }}</small>
   </h2>
 

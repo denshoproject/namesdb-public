@@ -18,7 +18,10 @@
 {% block content %}
 <section class="container">
 
-<h2>Names Database - {{ model }}</h2>
+<h2>
+  <a href="{% url "namespub-index" %}">Names Registry</a>
+  - {{ model }}
+</h2>
 
 <ul>
 {% for kwarg in kwargs %}
