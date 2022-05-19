@@ -1,11 +1,11 @@
-{% extends "namesdb_public/base.html" %}
-{% load namesdb_public_tags %}
+{% extends "base.html" %}
+{% load namespub_tags %}
 
 {% block title %}{{ record.last_name }}, {{ record.first_name }} | Names{% endblock %}
 
 {% block breadcrumbs %}{{ block.super }}
-<li><a href="{% url "namesdb-index" %}">Names Database</a></li>
-<li><a href="{% url "namesdb-farrecords" %}">FAR</a></li>
+<li><a href="{% url "namespub-index" %}">Names Database</a></li>
+<li><a href="{% url "namespub-farrecords" %}">FAR</a></li>
 <li>{{ record.last_name }}, {{ record.first_name }}</li>
 {% endblock breadcrumbs %}
 

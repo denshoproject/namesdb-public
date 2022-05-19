@@ -1,12 +1,12 @@
-{% extends "namesdb_public/base.html" %}
-{% load bootstrap_pagination namesdb_public_tags %}
+{% extends "base.html" %}
+{% load bootstrap_pagination namespub_tags %}
 
 
 {% block title %}Names Database{% endblock %}
 
 
 {% block breadcrumbs %}{{ block.super }}
-<li><a href="{% url "namesdb-index" %}">Names Database</a></li>
+<li><a href="{% url "namespub-index" %}">Names Database</a></li>
 {% if model %}
 <li>{{ model }}</li>
 {% else %}

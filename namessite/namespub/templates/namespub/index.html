@@ -1,5 +1,5 @@
-{% extends "namesdb_public/base.html" %}
-{% load bootstrap_pagination namesdb_public_tags %}
+{% extends "base.html" %}
+{% load bootstrap_pagination namespub_tags %}
 
 
 {% block title %}Names{% endblock %}
@@ -7,7 +7,7 @@
 
 {% block breadcrumbs %}{{ block.super }}
 {% if paginator.object_list %}
-<li><a href="{% url "namesdb-index" %}">Names Database</a></li>
+<li><a href="{% url "namespub-index" %}">Names Database</a></li>
 <li>Search</li>
 {% else %}
 <li>Names Registry</li>
@@ -21,9 +21,9 @@
 <h2>Names Registry</h2>
 
 <h3>
-    <a href="{% url "namesdb-persons" %}">Persons</a>
-  - <a href="{% url "namesdb-farrecords" %}">FAR Records</a>
-  - <a href="{% url "namesdb-wrarecords" %}">WRA Records</a>
+    <a href="{% url "namespub-persons" %}">Persons</a>
+  - <a href="{% url "namespub-farrecords" %}">FAR Records</a>
+  - <a href="{% url "namespub-wrarecords" %}">WRA Records</a>
 </h3>
 
 <p>
