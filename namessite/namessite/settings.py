@@ -41,6 +41,8 @@ DOCSTORE_PASSWORD = config.get('database', 'docstore_password')
 _docstore_clusters = config.get('database', 'docstore_clusters')
 DOCSTORE_CLUSTER = docstore.cluster(_docstore_clusters, DOCSTORE_HOST)
 
+RESULTS_PER_PAGE = 25
+
 INSTALLED_APPS = [
     #'django.contrib.admin',
     'django.contrib.auth',
