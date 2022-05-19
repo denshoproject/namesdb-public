@@ -76,7 +76,7 @@ def search_ui(request, model=None):
         highlight_fields = models.HIGHLIGHT_FIELDS_WRARECORD
     
     api_url = '%s?%s' % (
-        internal_url(request, reverse('namesdb-api-search')),
+        internal_url(request, reverse('namespub-api-search')),
         request.META['QUERY_STRING']
     )
     context = {

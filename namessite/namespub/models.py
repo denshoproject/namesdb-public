@@ -766,14 +766,14 @@ def format_object_detail(document, request, listitem=False):
     d['links'] = OrderedDict()
     # accomodate ark/noids
     if model == 'person':
-        d['links']['html'] = reverse('namesdb-person', args=[naan,noid], request=request)
-        d['links']['json'] = reverse('namesdb-api-person', args=[naan,noid], request=request)
+        d['links']['html'] = reverse('namespub-person', args=[naan,noid], request=request)
+        d['links']['json'] = reverse('namespub-api-person', args=[naan,noid], request=request)
     elif model == 'farrecord':
-        d['links']['html'] = reverse('namesdb-farrecord', args=[oid], request=request)
-        d['links']['json'] = reverse('namesdb-api-farrecord', args=[oid], request=request)
+        d['links']['html'] = reverse('namespub-farrecord', args=[oid], request=request)
+        d['links']['json'] = reverse('namespub-api-farrecord', args=[oid], request=request)
     elif model == 'wrarecord':
-        d['links']['html'] = reverse('namesdb-wrarecord', args=[oid], request=request)
-        d['links']['json'] = reverse('namesdb-api-wrarecord', args=[oid], request=request)
+        d['links']['html'] = reverse('namespub-wrarecord', args=[oid], request=request)
+        d['links']['json'] = reverse('namespub-api-wrarecord', args=[oid], request=request)
     d['title'] = ''
     d['description'] = ''
     
@@ -784,34 +784,34 @@ def format_object_detail(document, request, listitem=False):
     if document.get('far_records'):
         for p in document['far_records']:
             p['links'] = {}
-            p['links']['html'] = reverse('namesdb-farrecord', args=[p['far_record_id']], request=request)
-            p['links']['json'] = reverse('namesdb-api-farrecord', args=[p['far_record_id']], request=request)
+            p['links']['html'] = reverse('namespub-farrecord', args=[p['far_record_id']], request=request)
+            p['links']['json'] = reverse('namespub-api-farrecord', args=[p['far_record_id']], request=request)
     if document.get('wra_records'):
         for p in document['wra_records']:
             p['links'] = {}
-            p['links']['html'] = reverse('namesdb-wrarecord', args=[p['wra_record_id']], request=request)
-            p['links']['json'] = reverse('namesdb-api-wrarecord', args=[p['wra_record_id']], request=request)
+            p['links']['html'] = reverse('namespub-wrarecord', args=[p['wra_record_id']], request=request)
+            p['links']['json'] = reverse('namespub-api-wrarecord', args=[p['wra_record_id']], request=request)
     if document.get('person'):
         naan,noid = document['person']['id'].split('/')
         document['person']['links'] = {}
-        document['person']['links']['html'] = reverse('namesdb-person', args=[naan,noid], request=request)
-        document['person']['links']['json'] = reverse('namesdb-api-person', args=[naan,noid], request=request)
+        document['person']['links']['html'] = reverse('namespub-person', args=[naan,noid], request=request)
+        document['person']['links']['json'] = reverse('namespub-api-person', args=[naan,noid], request=request)
     
     def add_links(p, idfield, value=None):
         if not value:
             value = idfield
         p['links'] = {}
         if idfield == 'far_record_id' and p.get(idfield):
-            p['links']['html'] = reverse('namesdb-farrecord', args=[p[idfield]], request=request)
-            p['links']['json'] = reverse('namesdb-api-farrecord', args=[p[idfield]], request=request)
+            p['links']['html'] = reverse('namespub-farrecord', args=[p[idfield]], request=request)
+            p['links']['json'] = reverse('namespub-api-farrecord', args=[p[idfield]], request=request)
         elif idfield == 'wra_record_id' and p.get(idfield):
-            p['links']['html'] = reverse('namesdb-wrarecord', args=[p[idfield]], request=request)
-            p['links']['json'] = reverse('namesdb-api-wrarecord', args=[p[idfield]], request=request)
+            p['links']['html'] = reverse('namespub-wrarecord', args=[p[idfield]], request=request)
+            p['links']['json'] = reverse('namespub-api-wrarecord', args=[p[idfield]], request=request)
         elif idfield == 'nr_id' and p.get(idfield):
             naan,noid = p[idfield].split('/')
             p['links'] = {}
-            p['links']['html'] = reverse('namesdb-person', args=[naan,noid], request=request)
-            p['links']['json'] = reverse('namesdb-api-person', args=[naan,noid], request=request)
+            p['links']['html'] = reverse('namespub-person', args=[naan,noid], request=request)
+            p['links']['json'] = reverse('namespub-api-person', args=[naan,noid], request=request)
         return p
     
     if document.get('family'):
@@ -841,8 +841,8 @@ def format_person(document, request, highlights=None, listitem=False):
     if document.get('index'):
         d['index'] = document.pop('index')
     d['links'] = OrderedDict()
-    d['links']['html'] = reverse('namesdb-person', args=[naan,noid], request=request)
-    d['links']['json'] = reverse('namesdb-api-person', args=[naan,noid], request=request)
+    d['links']['html'] = reverse('namespub-person', args=[naan,noid], request=request)
+    d['links']['json'] = reverse('namespub-api-person', args=[naan,noid], request=request)
     d['title'] = ''
     d['description'] = ''
     for field in FIELDS_BY_MODEL[model]:
@@ -860,8 +860,8 @@ def format_farrecord(document, request, highlights=None, listitem=False):
     if document.get('index'):
         d['index'] = document.pop('index')
     d['links'] = OrderedDict()
-    d['links']['html'] = reverse('namesdb-farrecord', args=[oid], request=request)
-    d['links']['json'] = reverse('namesdb-api-farrecord', args=[oid], request=request)
+    d['links']['html'] = reverse('namespub-farrecord', args=[oid], request=request)
+    d['links']['json'] = reverse('namespub-api-farrecord', args=[oid], request=request)
     d['title'] = ''
     d['description'] = ''
     for field in FIELDS_BY_MODEL[model]:
@@ -879,8 +879,8 @@ def format_wrarecord(document, request, highlights=None, listitem=False):
     if document.get('index'):
         d['index'] = document.pop('index')
     d['links'] = OrderedDict()
-    d['links']['html'] = reverse('namesdb-wrarecord', args=[oid], request=request)
-    d['links']['json'] = reverse('namesdb-api-wrarecord', args=[oid], request=request)
+    d['links']['html'] = reverse('namespub-wrarecord', args=[oid], request=request)
+    d['links']['json'] = reverse('namespub-api-wrarecord', args=[oid], request=request)
     d['title'] = ''
     d['description'] = ''
     for field in FIELDS_BY_MODEL[model]:

@@ -37,37 +37,37 @@ urlpatterns = [
     
     re_path(
         r'^api/1.0/persons/(?P<naan>[0-9a-zA-Z_:-]+)/(?P<noid>[0-9a-zA-Z_:-]+)',
-        api.person, name='namesdb-api-person'
+        api.person, name='namespub-api-person'
     ),
     re_path(
         r'^api/1.0/farrecords/(?P<object_id>[0-9a-zA-Z_:-]+)',
-        api.farrecord, name='namesdb-api-farrecord'
+        api.farrecord, name='namespub-api-farrecord'
     ),
     re_path(
         r'^api/1.0/wrarecords/(?P<object_id>[0-9a-zA-Z_:-]+)',
-        api.wrarecord, name='namesdb-api-wrarecord'
+        api.wrarecord, name='namespub-api-wrarecord'
     ),
-    path('api/1.0/persons/', api.persons, name='namesdb-api-persons'),
-    path('api/1.0/farrecords/', api.farrecords, name='namesdb-api-farrecords'),
-    path('api/1.0/wrarecords/', api.wrarecords, name='namesdb-api-wrarecords'),
-    path('api/1.0/search/', api.Search.as_view(), name='namesdb-api-search'),
-    path('api/1.0/', api.index, name='namesdb-api-index'),
+    path('api/1.0/persons/', api.persons, name='namespub-api-persons'),
+    path('api/1.0/farrecords/', api.farrecords, name='namespub-api-farrecords'),
+    path('api/1.0/wrarecords/', api.wrarecords, name='namespub-api-wrarecords'),
+    path('api/1.0/search/', api.Search.as_view(), name='namespub-api-search'),
+    path('api/1.0/', api.index, name='namespub-api-index'),
     
-    path('search/', views.search_ui, name='namesdb-search'),
+    path('search/', views.search_ui, name='namespub-search'),
     re_path(
         r'^persons/(?P<naan>[0-9a-zA-Z_:-]+)/(?P<noid>[0-9a-zA-Z_:-]+)',
-        views.person, name='namesdb-person'
+        views.person, name='namespub-person'
     ),
     re_path(
         r'^farrecords/(?P<object_id>[0-9a-zA-Z_:-]+)',
-        views.farrecord, name='namesdb-farrecord'
+        views.farrecord, name='namespub-farrecord'
     ),
     re_path(
         r'^wrarecords/(?P<object_id>[0-9a-zA-Z_:-]+)',
-        views.wrarecord, name='namesdb-wrarecord'
+        views.wrarecord, name='namespub-wrarecord'
     ),
-    path('persons/', views.persons, name='namesdb-persons'),
-    path('farrecords/', views.farrecords, name='namesdb-farrecords'),
-    path('wrarecords/', views.wrarecords, name='namesdb-wrarecords'),
-    path('', views.index, name='namesdb-index'),
+    path('persons/', views.persons, name='namespub-persons'),
+    path('farrecords/', views.farrecords, name='namespub-farrecords'),
+    path('wrarecords/', views.wrarecords, name='namespub-wrarecords'),
+    path('', views.index, name='namespub-index'),
 ]

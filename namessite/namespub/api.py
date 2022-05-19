@@ -24,10 +24,10 @@ def index(request, format=None):
     """Swagger UI: /api/swagger/
     """
     data = {
-        'persons': reverse('namesdb-api-persons', request=request),
-        'farrecords': reverse('namesdb-api-farrecords', request=request),
-        'wrarecords': reverse('namesdb-api-wrarecords', request=request),
-        'search': reverse('namesdb-api-search', request=request),
+        'persons': reverse('namespub-api-persons', request=request),
+        'farrecords': reverse('namespub-api-farrecords', request=request),
+        'wrarecords': reverse('namespub-api-wrarecords', request=request),
+        'search': reverse('namespub-api-search', request=request),
     }
     return Response(data)
 
