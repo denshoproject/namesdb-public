@@ -110,7 +110,7 @@ class SearchForm(forms.Form):
                     fields.append((
                         fieldname,
                         forms.MultipleChoiceField(
-                            label=search.SEARCH_FORM_LABELS.get(
+                            label=models.SEARCH_FORM_LABELS.get(
                                 fieldname, fieldname),
                             choices=choices,
                             required=False,
