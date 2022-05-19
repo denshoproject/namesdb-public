@@ -1,3 +1,8 @@
-# Third-party libs and Django apps used by namesdb-public
+# Third-party libs and Django apps used by namesdbsite
+
+                                   # LICENSE
+django
+djangorestframework
+gunicorn>=20.1.0,<20.2             # MIT
 
 git+https://github.com/denshoproject/densho-elastictools.git
