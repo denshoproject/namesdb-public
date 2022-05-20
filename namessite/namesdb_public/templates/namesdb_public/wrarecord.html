@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% load namespub_tags %}
+{% load namesdb_public_tags %}
 
-{% block title %}{{ record.last_name }}, {{ record.first_name }} | Names{% endblock %}
+{% block title %}{{ record.lastname }}, {{ record.firstname }} | Names{% endblock %}
 
 {% block breadcrumbs %}{{ block.super }}
 <li><a href="{% url "namespub-index" %}">Names Database</a></li>
-<li><a href="{% url "namespub-farrecords" %}">FAR</a></li>
-<li>{{ record.last_name }}, {{ record.first_name }}</li>
+<li><a href="{% url "namespub-wrarecords" %}">WRA Form 26</a></li>
+<li>{{ record.lastname }}, {{ record.firstname }}</li>
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -14,13 +14,14 @@
 
   <h2>
     <a href="{% url "namespub-index" %}">Names Registry</a>
-    - <a href="{% url "namespub-farrecords" %}">farrecord</a>
-    - <strong>{{ record.last_name }}, {{ record.first_name }}</strong>
+    - <a href="{% url "namespub-wrarecords" %}">wrarecord</a>
+    - <strong>{{ record.lastname }}, {{ record.firstname }}</strong>
     <small class="font300">{{ record.far_record_id }}</small>
   </h2>
 
   <table class="table">
     <tbody>
+
       {% for key,value in record.items %}
       <tr>
         <th>
@@ -31,6 +32,7 @@
         </td>
       </tr>
       {% endfor %}
+
     </tbody>
   </table>
 
@@ -39,15 +41,14 @@
     <a href="{{ record.person.links.html }}">{{ record.person.name }}</a><br/>
   </p>
 
-  <h3>Others in Family {{ record.family_number }}</h3>
+  <h3>Others in Family {{ record.familyno }}</h3>
   <ul>
     {% for record in record.family %}
     <li>
       <a href="{{ record.links.html }}">
-        {{ record.last_name }}
-        {{ record.first_name }}
+        {{ record.lastname }}
+        {{ record.firstname }}
       </a>
-    </li>
     {% endfor %}
   </ul>
 

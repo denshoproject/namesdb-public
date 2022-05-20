@@ -7,10 +7,7 @@ from django import forms
 from django.conf import settings
 from django.core.cache import cache
 
-from elastictools import search
-
 from . import models
-
 
 # sorted version of facility and topics tree as choice fields
 # {
@@ -65,7 +62,7 @@ for key in FORMS_CHOICES.keys():
 
 
 class SearchForm(forms.Form):
-    field_order = models.SEARCH_INCLUDE_FIELDS
+    #field_order = models.SEARCH_INCLUDE_FIELDS
     search_results = None
     
     def __init__( self, *args, **kwargs ):

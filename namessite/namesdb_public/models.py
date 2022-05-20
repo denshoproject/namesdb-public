@@ -727,6 +727,7 @@ for fieldset in [AGG_FIELDS_PERSON, AGG_FIELDS_FARRECORD, AGG_FIELDS_WRARECORD]:
     for key,val in fieldset.items():
         SEARCH_AGG_FIELDS[key] = val
 
+SEARCH_FORM_LABELS = {}
 
 def docstore_object(request, model, oid):
     data = docstore.Docstore(
