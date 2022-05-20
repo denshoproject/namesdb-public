@@ -8,11 +8,12 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
+from elastictools import docstore
+from elastictools import search
+
 from . import forms
 from . import models
 from . import api
-from . import docstore
-from . import search
 
 PAGE_SIZE = 20
 CONTEXT = 3
@@ -88,18 +89,21 @@ def search_ui(request, model=None):
     
     if request.GET.get('fulltext'):
         context['searching'] = True
-        
-        searcher = search.Searcher()
+
+        searcher = search.Searcher(
+            docstore.Docstore(models.INDEX_PREFIX, settings.DOCSTORE_HOST, settings)
+        )
         params=request.GET.copy()
         
         searcher.prepare(
             params=params,
-            params_allowlist=['fulltext'] + params_allowlist,
+            params_whitelist=['fulltext'] + params_allowlist,
             search_models=search_models,
+            sort=[],
             fields=search_include_fields,
             fields_nested=[],
             fields_agg=agg_fields,
-            highlight_fields=highlight_fields,
+            #highlight_fields=highlight_fields,
         )
         limit,offset = _limit_offset(request)
         results = searcher.execute(limit, offset)
