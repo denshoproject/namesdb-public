@@ -19,8 +19,8 @@ from elastictools import docstore
 BASE_DIR = Path(__file__).absolute().parent.parent
 
 CONFIG_FILES = [
-    '/etc/ddr/namespub.cfg',
-    '/etc/ddr/namespub-local.cfg'
+    '/etc/ddr/namesdbpublic.cfg',
+    '/etc/ddr/namesdbpublic-local.cfg'
 ]
 config = configparser.ConfigParser()
 configs_read = config.read(CONFIG_FILES)
@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'rest_framework',
     #
-    'namespub',
+    'namesdb_public',
 ]
 
 MIDDLEWARE = [
@@ -68,7 +68,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'namespub.urls'
+ROOT_URLCONF = 'namesdb_public.urls'
 
 TEMPLATES = [
     {

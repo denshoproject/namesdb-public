@@ -26,31 +26,31 @@ NON_FILTER_FIELDS = [
 ]
 
 
-def index(request, template_name='namespub/index.html'):
+def index(request, template_name='namesdb_public/index.html'):
     return render(request, template_name, {
     })
 
-def persons(request, template_name='namespub/persons.html'):
+def persons(request, template_name='namesdb_public/persons.html'):
     return search_ui(request, 'person')
 
-def farrecords(request, template_name='namespub/farrecords.html'):
+def farrecords(request, template_name='namesdb_public/farrecords.html'):
     return search_ui(request, 'farrecord')
 
-def wrarecords(request, template_name='namespub/wrarecords.html'):
+def wrarecords(request, template_name='namesdb_public/wrarecords.html'):
     return search_ui(request, 'wrarecord')
 
-def person(request, naan, noid, template_name='namespub/person.html'):
+def person(request, naan, noid, template_name='namesdb_public/person.html'):
     object_id = '/'.join([naan, noid])
     return render(request, template_name, {
         'record': models.Person.get(object_id, request),
     })
 
-def farrecord(request, object_id, template_name='namespub/farrecord.html'):
+def farrecord(request, object_id, template_name='namesdb_public/farrecord.html'):
     return render(request, template_name, {
         'record': models.FarRecord.get(object_id, request),
     })
 
-def wrarecord(request, object_id, template_name='namespub/wrarecord.html'):
+def wrarecord(request, object_id, template_name='namesdb_public/wrarecord.html'):
     return render(request, template_name, {
         'record': models.WraRecord.get(object_id, request),
     })
@@ -126,7 +126,7 @@ def search_ui(request, model=None):
     else:
         context['form'] = forms.SearchForm()
 
-    return render(request, 'namespub/search.html', context)
+    return render(request, 'namesdb_public/search.html', context)
 
 def internal_url(request, path, query=None):
     """Internal version of reversed URL

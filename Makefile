@@ -1,5 +1,5 @@
 PROJECT=namesdb-public
-APP=namespub
+APP=namesdbpublic
 USER=ddr
 SHELL = /bin/bash
 
@@ -28,33 +28,33 @@ PACKAGE_TIMESTAMP := $(shell git log -1 --pretty="%ad" --date=short | tr -d -)
 # See https://github.com/densho/ansible-colo.git for more info:
 # - templates/proxy/nginx.conf.j2
 # - templates/static/nginx.conf.j2
-PACKAGE_SERVER=ddr.densho.org/static/namespub
+PACKAGE_SERVER=ddr.densho.org/static/namesdbpublic
 
 SRC_REPO_ASSETS=https://github.com/denshoproject/ddr-public-assets.git
 
 INSTALL_BASE=/opt
-INSTALL_NAMESPUB=$(INSTALL_BASE)/namesdb-public
+INSTALL_NAMESDBPUBLIC=$(INSTALL_BASE)/namesdb-public
 INSTALL_ASSETS=/opt/ddr-public-assets
 REQUIREMENTS=./requirements.txt
 PIP_CACHE_DIR=$(INSTALL_BASE)/pip-cache
 
-VIRTUALENV=$(INSTALL_NAMESPUB)/venv/namespub
+VIRTUALENV=$(INSTALL_NAMESDBPUBLIC)/venv/ndbpub
 
 CONF_BASE=/etc/ddr
-CONF_PRODUCTION=$(CONF_BASE)/namespub.cfg
-CONF_LOCAL=$(CONF_BASE)/namespub-local.cfg
+CONF_PRODUCTION=$(CONF_BASE)/namesdbpublic.cfg
+CONF_LOCAL=$(CONF_BASE)/namesdbpublic-local.cfg
 
 SQLITE_BASE=/var/lib/ddr
 LOG_BASE=/var/log/ddr
 
-MEDIA_BASE=/var/www/namespub
+MEDIA_BASE=/var/www/namesdbpublic
 MEDIA_ROOT=$(MEDIA_BASE)/media
 ASSETS_ROOT=$(MEDIA_BASE)/assets
 STATIC_ROOT=$(MEDIA_BASE)/static
 
-SUPERVISOR_GUNICORN_CONF=/etc/supervisor/conf.d/namespub.conf
-NGINX_CONF=/etc/nginx/sites-available/namespub.conf
-NGINX_CONF_LINK=/etc/nginx/sites-enabled/namespub.conf
+SUPERVISOR_GUNICORN_CONF=/etc/supervisor/conf.d/namesdbpublic.conf
+NGINX_CONF=/etc/nginx/sites-available/namesdbpublic.conf
+NGINX_CONF_LINK=/etc/nginx/sites-enabled/namesdbpublic.conf
 
 
 .PHONY: help
@@ -90,8 +90,8 @@ howto-install:
 	@echo "- ufw enable"
 	@echo "- apt-get install make"
 	@echo "- adduser ddr"
-	@echo "- git clone $(SRC_REPO_PUBLIC) $(INSTALL_NAMESPUB)"
-	@echo "- cd $(INSTALL_NAMESPUB)/namespub"
+	@echo "- git clone $(SRC_REPO_PUBLIC) $(INSTALL_NAMESDBPUBLIC)"
+	@echo "- cd $(INSTALL_NAMESDBPUBLIC)/namesdbpublic"
 	@echo "- make install"
 	@echo "- [make branch BRANCH=develop]"
 	@echo "- [make install]"
@@ -194,7 +194,7 @@ install-namesdb-public: install-setuptools mkdir-namesdb-public
 	@echo "install-namesdb-public -----------------------------------------------------"
 	apt-get --assume-yes install sqlite3 supervisor
 	source $(VIRTUALENV)/bin/activate; \
-	pip3 install -U --cache-dir=$(PIP_CACHE_DIR) -r $(INSTALL_NAMESPUB)/requirements.txt
+	pip3 install -U --cache-dir=$(PIP_CACHE_DIR) -r $(INSTALL_NAMESDBPUBLIC)/requirements.txt
 
 mkdir-namesdb-public:
 	@echo ""
@@ -219,27 +219,27 @@ test-namesdb-public-ui:
 	@echo ""
 	@echo "test-namesdb-public-ui ----------------------------------------"
 	source $(VIRTUALENV)/bin/activate; \
-	cd $(INSTALL_NAMESPUB); python namespub/manage.py test ui
+	cd $(INSTALL_NAMESDBPUBLIC); python namessite/manage.py test ui
 
 test-namesdb-public-names:
 	@echo ""
 	@echo "test-namesdb-public-names ----------------------------------------"
 	source $(VIRTUALENV)/bin/activate; \
-	cd $(INSTALL_NAMESPUB); python namespub/manage.py test names
+	cd $(INSTALL_NAMESDBPUBLIC); python namessite/manage.py test names
 
 shell:
 	source $(VIRTUALENV)/bin/activate; \
-	python namespub/manage.py shell
+	python namessite/manage.py shell
 
 runserver:
 	source $(VIRTUALENV)/bin/activate; \
-	python namespub/manage.py runserver 0.0.0.0:8000
+	python namessite/manage.py runserver 0.0.0.0:8000
 
 uninstall-namesdb-public: install-setuptools
 	@echo ""
 	@echo "uninstall-namesdb-public ---------------------------------------------------"
 	source $(VIRTUALENV)/bin/activate; \
-	pip3 uninstall -y -r $(INSTALL_NAMESPUB)/requirements.txt
+	pip3 uninstall -y -r $(INSTALL_NAMESDBPUBLIC)/requirements.txt
 
 clean-namesdb-public:
 	-rm -Rf $(VIRTUALENV)
@@ -251,13 +251,13 @@ get-ddr-public-assets:
 	@echo "get-ddr-public-assets --------------------------------------------------"
 	if test -d $(INSTALL_ASSETS); \
 	then cd $(INSTALL_ASSETS) && git pull; \
-	else cd $(INSTALL_NAMESPUB) && git clone $(SRC_REPO_ASSETS); \
+	else cd $(INSTALL_NAMESDBPUBLIC) && git clone $(SRC_REPO_ASSETS); \
 	fi
 
 
 migrate:
 	source $(VIRTUALENV)/bin/activate; \
-	cd $(INSTALL_NAMESPUB)/namespub && python manage.py migrate --noinput
+	cd $(INSTALL_NAMESDBPUBLIC) && python namessite/manage.py migrate --noinput
 	chown -R ddr.ddr $(SQLITE_BASE)
 	chmod -R 770 $(SQLITE_BASE)
 	chown -R ddr.ddr $(LOG_BASE)
@@ -268,10 +268,10 @@ install-configs:
 	@echo ""
 	@echo "configuring namesdb-public -------------------------------------------------"
 # base settings file
-# /etc/ddr/namespub.cfg must be readable by all
-# /etc/ddr/namespub-local.cfg must be readable by ddr but contains sensitive info
+# /etc/ddr/namesdbpublic.cfg must be readable by all
+# /etc/ddr/namesdbpublic-local.cfg must be readable by ddr but contains sensitive info
 	-mkdir /etc/ddr
-	cp $(INSTALL_NAMESPUB)/conf/namespub.cfg $(CONF_PRODUCTION)
+	cp $(INSTALL_NAMESDBPUBLIC)/conf/namesdbpublic.cfg $(CONF_PRODUCTION)
 	chown root.root $(CONF_PRODUCTION)
 	chmod 644 $(CONF_PRODUCTION)
 	touch $(CONF_LOCAL)
@@ -288,13 +288,13 @@ install-daemon-configs:
 	@echo ""
 	@echo "install-daemon-configs -------------------------------------------------"
 # nginx settings
-	cp $(INSTALL_NAMESPUB)/conf/nginx.conf $(NGINX_CONF)
+	cp $(INSTALL_NAMESDBPUBLIC)/conf/nginx.conf $(NGINX_CONF)
 	chown root.root $(NGINX_CONF)
 	chmod 644 $(NGINX_CONF)
 	-ln -s $(NGINX_CONF) $(NGINX_CONF_LINK)
 	-rm /etc/nginx/sites-enabled/default
 # supervisord
-	cp $(INSTALL_NAMESPUB)/conf/supervisor.conf $(SUPERVISOR_GUNICORN_CONF)
+	cp $(INSTALL_NAMESDBPUBLIC)/conf/supervisor.conf $(SUPERVISOR_GUNICORN_CONF)
 	chown root.root $(SUPERVISOR_GUNICORN_CONF)
 	chmod 644 $(SUPERVISOR_GUNICORN_CONF)
 
