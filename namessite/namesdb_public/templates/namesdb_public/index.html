@@ -1,5 +1,5 @@
-{% extends "ui/base.html" %}
-{% load bootstrap_pagination names_tags %}
+{% extends "base.html" %}
+{% load bootstrap_pagination namesdb_public_tags %}
 
 
 {% block title %}Names{% endblock %}
@@ -7,7 +7,7 @@
 
 {% block breadcrumbs %}{{ block.super }}
 {% if paginator.object_list %}
-<li><a href="{% url "names-index" %}">Names Registry</a></li>
+<li><a href="{% url "namespub-index" %}">Names Database</a></li>
 <li>Search</li>
 {% else %}
 <li>Names Registry</li>
@@ -19,6 +19,12 @@
 <section class="container">
 
 <h2>Names Registry</h2>
+
+<h3>
+    <a href="{% url "namespub-persons" %}">Persons</a>
+  - <a href="{% url "namespub-farrecords" %}">FAR Records</a>
+  - <a href="{% url "namespub-wrarecords" %}">WRA Records</a>
+</h3>
 
 <p>
 The Names Registry is a searchable version of the WRA Form 26 register and Final Accountability Rosters (FAR). These records contain the names and other information about the individuals held in the ten WRA camps during the WWII incarceration.
@@ -250,24 +256,14 @@ returned
       </thead>
       <tbody>
 
-{% for object in page.object_list %}
-        <tr>
-          <td>
-            <a href="{{ object.links.html }}">{{ object.m_lastname }}, {{ object.m_firstname }} ({{ object.m_gender }})</a>
-          </td>
-          <td>{{ object.m_camp_label }}</td>
-          <td>{{ object.m_birthyear }}</td>
-          <td>{{ object.m_originalstate_label }}</td>
-          <td>{{ object.m_familyno }}</td>
-          <td>{{ object.m_individualno }}</td>
-          <td>{{ object.m_dataset_label }}</td>
-        </tr>
+{% for record in page.object_list %}
+{% record record %}
 {% endfor %}
 
       </tbody>
     </table>
 
-{% endif %}{# paginator.object_list #}
+{% endif %}{# page.object_list #}
 
 </div><!-- #records -->
 

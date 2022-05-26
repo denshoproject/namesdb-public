@@ -6,20 +6,23 @@ logger = logging.getLogger(__name__)
 import os
 import sys
 
-from elasticsearch.exceptions import NotFoundError
-import elasticsearch_dsl as dsl
 logging.getLogger("elasticsearch").setLevel(logging.WARNING)
+
+from django.conf import settings
 from rest_framework.exceptions import NotFound
 from rest_framework.reverse import reverse
 
+from elastictools import docstore
+from elastictools.docstore import elasticsearch_dsl as dsl
+
 from . import definitions
-from . import docstore
+
+INDEX_PREFIX = 'names'
 
 # see if cluster is available, quit with nice message if not
-docstore.Docstore().start_test()
+docstore.Docstore(INDEX_PREFIX, settings.DOCSTORE_HOST, settings).start_test()
 
-# set default hosts and index
-DOCSTORE = docstore.Docstore()
+MAX_SIZE = 1000
 
 MODELS = [
     'person',
@@ -27,8 +30,12 @@ MODELS = [
     'wrarecord',
 ]
 SEARCH_MODELS = MODELS
-DOCTYPES = [f'{docstore.INDEX_PREFIX}{model}' for model in MODELS]
-MODELS_DOCTYPES = {model: f'{docstore.INDEX_PREFIX}{model}' for model in MODELS}
+DOCTYPES = [f'{INDEX_PREFIX}{model}' for model in MODELS]
+MODELS_DOCTYPES = {model: f'{INDEX_PREFIX}{model}' for model in MODELS}
+
+SEARCH_FORM_LABELS = {
+    'm_camp': 'Camp',
+}
 
 
 def _hitvalue(hit, field):
@@ -209,6 +216,11 @@ FIELDS_PERSON = [
     'facilities', 'far_records', 'wra_records',
 ]
 
+SEARCH_EXCLUDE_FIELDS_PERSON = [
+    'birth_date', 'death_date', 'timestamp',  # can't search fulltext on dates
+    'facilities', 'far_records', 'wra_records', 'family',  # relation pointers
+]
+
 INCLUDE_FIELDS_PERSON = [
     'nr_id', 'family_name', 'given_name', 'given_name_alt', 'other_names',
     'middle_name', 'prefix_name', 'suffix_name', 'jp_name', 'preferred_name',
@@ -217,15 +229,24 @@ INCLUDE_FIELDS_PERSON = [
     'exclusion_order_title',
 ]
 
+EXCLUDE_FIELDS_PERSON = []
+
 AGG_FIELDS_PERSON = {
-    'birth_place': 'birth_place',
     'citizenship': 'citizenship',
     'gender': 'gender',
     'preexclusion_residence_city': 'preexclusion_residence_city',
     'preexclusion_residence_state': 'preexclusion_residence_state',
     'postexclusion_residence_city': 'postexclusion_residence_city',
     'postexclusion_residence_state': 'postexclusion_residence_state',
+    'exclusion_order_title': 'exclusion_order_title',
+    'exclusion_order_id': 'exclusion_order_id',
 }
+
+HIGHLIGHT_FIELDS_PERSON = [
+    'birth_date_text', 'birth_place',
+    'family_name', 'given_name', 'other_names', 'preferred_name',
+    'preexclusion_residence_city', 'postexclusion_residence_city',
+]
 
 class ListFacility(dsl.InnerDoc):
     person_nr_id = dsl.Keyword()
@@ -235,37 +256,43 @@ class ListFacility(dsl.InnerDoc):
 
 class ListFarRecord(dsl.InnerDoc):
     far_record_id = dsl.Keyword()
-    last_name = dsl.Keyword()
-    first_name = dsl.Keyword()
+    last_name = dsl.Text()
+    first_name = dsl.Text()
 
 class ListWraRecord(dsl.InnerDoc):
     wra_record_id = dsl.Keyword()
-    lastname = dsl.Keyword()
-    firstname = dsl.Keyword()
-    middleinitial = dsl.Keyword()
+    lastname = dsl.Text()
+    firstname = dsl.Text()
+    middleinitial = dsl.Text()
+
+class ListFamily(dsl.InnerDoc):
+    wra_family_no = dsl.Keyword()
+    nr_id = dsl.Keyword()
+    preferred_name = dsl.Text()
 
 class Person(Record):
     """Person record model
+    TODO review field types for aggs,filtering
     """
     nr_id                         = dsl.Keyword()
-    family_name                   = dsl.Keyword()
-    given_name                    = dsl.Keyword()
+    family_name                   = dsl.Text()
+    given_name                    = dsl.Text()
     given_name_alt                = dsl.Text()
     other_names                   = dsl.Text()
-    middle_name                   = dsl.Keyword()
-    prefix_name                   = dsl.Keyword()
-    suffix_name                   = dsl.Keyword()
-    jp_name                       = dsl.Keyword()
-    preferred_name                = dsl.Keyword()
+    middle_name                   = dsl.Text()
+    prefix_name                   = dsl.Text()
+    suffix_name                   = dsl.Text()
+    jp_name                       = dsl.Text()
+    preferred_name                = dsl.Text()
     birth_date                    = dsl.Date()
-    birth_date_text               = dsl.Keyword()
-    birth_place                   = dsl.Keyword()
+    birth_date_text               = dsl.Text()
+    birth_place                   = dsl.Text()
     death_date                    = dsl.Date()
-    death_date_text               = dsl.Keyword()
-    wra_family_no                 = dsl.Keyword()
-    wra_individual_no             = dsl.Keyword()
+    death_date_text               = dsl.Text()
+    wra_family_no                 = dsl.Text()
+    wra_individual_no             = dsl.Text()
     citizenship                   = dsl.Keyword()
-    alien_registration_no         = dsl.Keyword()
+    alien_registration_no         = dsl.Text()
     gender                        = dsl.Keyword()
     preexclusion_residence_city   = dsl.Keyword()
     preexclusion_residence_state  = dsl.Keyword()
@@ -277,10 +304,11 @@ class Person(Record):
     facilities                    = dsl.Nested(ListFacility)
     far_records                   = dsl.Nested(ListFarRecord)
     wra_records                   = dsl.Nested(ListWraRecord)
+    family                        = dsl.Nested(ListFamily)
     
     class Index:
         model = 'person'
-        name = f'{docstore.INDEX_PREFIX}person'
+        name = f'{INDEX_PREFIX}person'
     
     def __repr__(self):
         return f'<Person {self.nr_id}>'
@@ -293,15 +321,25 @@ class Person(Record):
     @staticmethod
     def from_dict(nr_id, data):
         """
-        @param fieldnames: list
         @param nr_id: str
         @param data: dict
         @returns: Person
         """
-        record = Record.from_dict(
-            Person, FIELDS_PERSON, nr_id, data
-        )
-        assemble_fulltext(record, FIELDS_PERSON)
+        # exclude private fields
+        fieldnames = [
+            f for f in FIELDS_PERSON if f not in EXCLUDE_FIELDS_PERSON
+        ]
+        record = Record.from_dict(Person, fieldnames, nr_id, data)
+        assemble_fulltext(record, fieldnames)
+        record.family = []
+        if data.get('family'):
+            record.family = [
+                {
+                    'nr_id':         person['nr_id'],
+                    'preferred_name': person['preferred_name'],
+                }
+                for person in data['family']
+            ]
         return record
     
     @staticmethod
@@ -337,7 +375,7 @@ class PersonFacility(Record):
     
     class Index:
         model = 'personfacility'
-        name = f'{docstore.INDEX_PREFIX}personfacility'
+        name = f'{INDEX_PREFIX}personfacility'
     
     def __repr__(self):
         return f'<PersonFacility {self.person_id},{self.facility_id}>'
@@ -356,10 +394,17 @@ FIELDS_FARRECORD = [
     'person', 'timestamp',
 ]
 
+SEARCH_EXCLUDE_FIELDS_FARRECORD = [
+    'timestamp', # can't fulltext search on dates
+    'person',  # relation pointers
+]
+
 INCLUDE_FIELDS_FARRECORD = [
     'far_record_id', 'family_number', 'far_line_id', 'last_name', 'first_name',
     'other_names', 'date_of_birth', 'original_notes',
     ]
+
+EXCLUDE_FIELDS_FARRECORD = []
 
 AGG_FIELDS_FARRECORD = {
     'facility': 'facility',
@@ -383,21 +428,31 @@ AGG_FIELDS_FARRECORD = {
     'camp_address_room': 'camp_address_room',
 }
 
+HIGHLIGHT_FIELDS_FARRECORD = [
+]
+
 class NestedPerson(dsl.InnerDoc):
     nr_id = dsl.Keyword()
-    preferred_name = dsl.Keyword()
+    preferred_name = dsl.Text()
+
+class ListFamily(dsl.InnerDoc):
+    family_number = dsl.Keyword()
+    far_record_id = dsl.Keyword()
+    last_name = dsl.Text()
+    first_name = dsl.Text()
 
 class FarRecord(Record):
     """FarRecord model
+    TODO review field types for aggs,filtering
     """
     far_record_id           = dsl.Keyword()
     facility                = dsl.Keyword()
     original_order          = dsl.Keyword()
     family_number           = dsl.Keyword()
     far_line_id             = dsl.Keyword()
-    last_name               = dsl.Keyword()
-    first_name              = dsl.Keyword()
-    other_names             = dsl.Keyword()
+    last_name               = dsl.Text()
+    first_name              = dsl.Text()
+    other_names             = dsl.Text()
     date_of_birth           = dsl.Keyword()
     year_of_birth           = dsl.Keyword()
     sex                     = dsl.Keyword()
@@ -422,13 +477,14 @@ class FarRecord(Record):
     camp_address_barracks   = dsl.Keyword()
     camp_address_room       = dsl.Keyword()
     reference               = dsl.Keyword()
-    original_notes          = dsl.Keyword()
+    original_notes          = dsl.Text()
     person                  = dsl.Nested(NestedPerson)
+    family                  = dsl.Nested(ListFamily)
     timestamp               = dsl.Date()
     
     class Index:
         model = 'farrecord'
-        name = f'{docstore.INDEX_PREFIX}farrecord'
+        name = f'{INDEX_PREFIX}farrecord'
     
     def __repr__(self):
         return f'<FarRecord {self.far_record_id}>'
@@ -445,10 +501,22 @@ class FarRecord(Record):
         @param data: dict
         @returns: FarRecord
         """
-        record = Record.from_dict(
-            FarRecord, FIELDS_FARRECORD, far_record_id, data
-        )
-        assemble_fulltext(record, FIELDS_FARRECORD)
+        # exclude private fields
+        fieldnames = [
+            f for f in FIELDS_FARRECORD if f not in EXCLUDE_FIELDS_FARRECORD
+        ]
+        record = Record.from_dict(FarRecord, fieldnames, far_record_id, data)
+        assemble_fulltext(record, fieldnames)
+        record.family = []
+        if data.get('family'):
+            record.family = [
+                {
+                    'far_record_id': person['far_record_id'],
+                    'last_name': person['last_name'],
+                    'first_name': person['first_name'],
+                }
+                for person in data['family']
+            ]
         return record
     
     @staticmethod
@@ -472,16 +540,24 @@ FIELDS_WRARECORD = [
     'assemblycenter', 'originaladdress', 'birthcountry', 'fatheroccupus',
     'fatheroccupabr', 'yearsschooljapan', 'gradejapan', 'schooldegree',
     'yearofusarrival', 'timeinjapan', 'ageinjapan', 'militaryservice',
-    'martitalstatus', 'ethnicity', 'birthplace', 'citizenshipstatus',
+    'maritalstatus', 'ethnicity', 'birthplace', 'citizenshipstatus',
     'highestgrade', 'language', 'religion', 'occupqual1', 'occupqual2',
     'occupqual3', 'occupotn1', 'occupotn2', 'wra_filenumber', 'person',
     'timestamp',
 ]
 
+SEARCH_EXCLUDE_FIELDS_WRARECORD = [
+    'timestamp', # can't fulltext search on dates
+    'person',  # relation pointers
+]
+
 INCLUDE_FIELDS_WRARECORD = [
-    'wra_record_id', 'lastname', 'firstname', 'middleinitial',
+    'wra_record_id',
+    'lastname', 'firstname', 'middleinitial',
     'familyno', 'individualno',
 ]
+
+EXCLUDE_FIELDS_WRARECORD = []
 
 AGG_FIELDS_WRARECORD = {
     'facility': 'facility',
@@ -499,7 +575,7 @@ AGG_FIELDS_WRARECORD = {
     'timeinjapan': 'timeinjapan',
     'ageinjapan': 'ageinjapan',
     'militaryservice': 'militaryservice',
-    'martitalstatus': 'martitalstatus',
+    'maritalstatus': 'maritalstatus',
     'ethnicity': 'ethnicity',
     'birthplace': 'birthplace',
     'citizenshipstatus': 'citizenshipstatus',
@@ -513,20 +589,30 @@ AGG_FIELDS_WRARECORD = {
     'occupotn2': 'occupotn2',
 }
 
+HIGHLIGHT_FIELDS_WRARECORD = [
+]
+
+class ListFamily(dsl.InnerDoc):
+    familyno = dsl.Keyword()
+    wra_record_id = dsl.Keyword()
+    lastname = dsl.Keyword()
+    firstname = dsl.Keyword()
+
 class WraRecord(Record):
     """WraRecord model
+    TODO review field types for aggs,filtering
     """
-    wra_record_id     = dsl.Integer()
+    wra_record_id     = dsl.Keyword()
     facility          = dsl.Keyword()
-    lastname          = dsl.Keyword()
-    firstname         = dsl.Keyword()
-    middleinitial     = dsl.Keyword()
+    lastname          = dsl.Text()
+    firstname         = dsl.Text()
+    middleinitial     = dsl.Text()
     birthyear         = dsl.Keyword()
     gender            = dsl.Keyword()
     originalstate     = dsl.Keyword()
     familyno          = dsl.Keyword()
     individualno      = dsl.Keyword()
-    notes             = dsl.Keyword()
+    notes             = dsl.Text()
     assemblycenter    = dsl.Keyword()
     originaladdress   = dsl.Keyword()
     birthcountry      = dsl.Keyword()
@@ -539,7 +625,7 @@ class WraRecord(Record):
     timeinjapan       = dsl.Keyword()
     ageinjapan        = dsl.Keyword()
     militaryservice   = dsl.Keyword()
-    martitalstatus    = dsl.Keyword()
+    maritalstatus     = dsl.Keyword()
     ethnicity         = dsl.Keyword()
     birthplace        = dsl.Keyword()
     citizenshipstatus = dsl.Keyword()
@@ -553,11 +639,12 @@ class WraRecord(Record):
     occupotn2         = dsl.Keyword()
     wra_filenumber    = dsl.Keyword()
     person            = dsl.Nested(NestedPerson)
+    family            = dsl.Nested(ListFamily)
     timestamp         = dsl.Date()
     
     class Index:
         model = 'wrarecord'
-        name = f'{docstore.INDEX_PREFIX}wrarecord'
+        name = f'{INDEX_PREFIX}wrarecord'
     
     def __repr__(self):
         return f'<WraRecord {self.wra_record_id}>'
@@ -570,15 +657,26 @@ class WraRecord(Record):
     @staticmethod
     def from_dict(wra_record_id, data):
         """
-        @param fieldnames: list
         @param wra_record_id: str
         @param data: dict
         @returns: WraRecord
         """
-        record = Record.from_dict(
-            WraRecord, FIELDS_WRARECORD, wra_record_id, data
-        )
-        assemble_fulltext(record, FIELDS_WRARECORD)
+        # exclude private fields
+        fieldnames = [
+            f for f in FIELDS_WRARECORD if f not in EXCLUDE_FIELDS_WRARECORD
+        ]
+        record = Record.from_dict(WraRecord, fieldnames, wra_record_id, data)
+        assemble_fulltext(record, fieldnames)
+        record.family = []
+        if data.get('family'):
+            record.family = [
+                {
+                    'wra_record_id': person['wra_record_id'],
+                    'lastname': person['lastname'],
+                    'firstname': person['firstname'],
+                }
+                for person in data['family']
+            ]
         return record
     
     @staticmethod
@@ -597,9 +695,9 @@ class WraRecord(Record):
 
 
 DOCTYPES_BY_MODEL = {
-    'person':    f'{docstore.INDEX_PREFIX}person',
-    'farrecord': f'{docstore.INDEX_PREFIX}farrecord',
-    'wrarecord': f'{docstore.INDEX_PREFIX}wrarecord',
+    'person':    f'{INDEX_PREFIX}person',
+    'farrecord': f'{INDEX_PREFIX}farrecord',
+    'wrarecord': f'{INDEX_PREFIX}wrarecord',
 }
 
 ELASTICSEARCH_CLASSES_BY_MODEL = {
@@ -614,19 +712,27 @@ FIELDS_BY_MODEL = {
     'wrarecord': FIELDS_WRARECORD,
 }
 
+SEARCH_INCLUDE_FIELDS_PERSON    = [x for x in FIELDS_PERSON    if (x not in SEARCH_EXCLUDE_FIELDS_PERSON)]
+SEARCH_INCLUDE_FIELDS_FARRECORD = [x for x in FIELDS_FARRECORD if (x not in SEARCH_EXCLUDE_FIELDS_FARRECORD)]
+SEARCH_INCLUDE_FIELDS_WRARECORD = [x for x in FIELDS_WRARECORD if (x not in SEARCH_EXCLUDE_FIELDS_WRARECORD)]
+
 SEARCH_INCLUDE_FIELDS = list(set(
-    INCLUDE_FIELDS_PERSON + INCLUDE_FIELDS_FARRECORD + INCLUDE_FIELDS_WRARECORD
+      SEARCH_INCLUDE_FIELDS_PERSON
+    + SEARCH_INCLUDE_FIELDS_FARRECORD
+    + SEARCH_INCLUDE_FIELDS_WRARECORD
 ))
-#SEARCH_INCLUDE_FIELDS = ['nr_id', 'far_record_id', 'wra_record_id', 'id', 'last_name', 'first_name']
 
 SEARCH_AGG_FIELDS = {}
 for fieldset in [AGG_FIELDS_PERSON, AGG_FIELDS_FARRECORD, AGG_FIELDS_WRARECORD]:
     for key,val in fieldset.items():
         SEARCH_AGG_FIELDS[key] = val
 
+SEARCH_FORM_LABELS = {}
 
 def docstore_object(request, model, oid):
-    data = DOCSTORE.es.get(
+    data = docstore.Docstore(
+        INDEX_PREFIX, settings.DOCSTORE_HOST, settings
+    ).es.get(
         index=MODELS_DOCTYPES[model],
         id=oid
     )
@@ -650,7 +756,12 @@ def format_object_detail(document, request, listitem=False):
             oid = document['nr_id']
             model = 'namesperson'
     if model:
-        model = model.replace(docstore.INDEX_PREFIX, '')
+        model = model.replace(INDEX_PREFIX, '')
+    # accomodate naan/noids
+    if '/' in oid:
+        naan,noid = oid.split('/')
+    else:
+        naan,noid = None,None
     
     d = OrderedDict()
     d['id'] = oid
@@ -658,19 +769,76 @@ def format_object_detail(document, request, listitem=False):
     if document.get('index'):
         d['index'] = document.pop('index')
     d['links'] = OrderedDict()
-    d['links']['html'] = reverse('ui-object-detail', args=[oid], request=request)
-    d['links']['json'] = reverse('ui-api-object', args=[oid], request=request)
+    # accomodate ark/noids
+    if model == 'person':
+        d['links']['html'] = reverse('namespub-person', args=[naan,noid], request=request)
+        d['links']['json'] = reverse('namespub-api-person', args=[naan,noid], request=request)
+    elif model == 'farrecord':
+        d['links']['html'] = reverse('namespub-farrecord', args=[oid], request=request)
+        d['links']['json'] = reverse('namespub-api-farrecord', args=[oid], request=request)
+    elif model == 'wrarecord':
+        d['links']['html'] = reverse('namespub-wrarecord', args=[oid], request=request)
+        d['links']['json'] = reverse('namespub-api-wrarecord', args=[oid], request=request)
     d['title'] = ''
     d['description'] = ''
-
+    
     for field in FIELDS_BY_MODEL[model]:
         if document.get(field):
-            d[field] = document.pop(field)
+            d[field] = document[field]
+    
+    if document.get('far_records'):
+        for p in document['far_records']:
+            p['links'] = {}
+            p['links']['html'] = reverse('namespub-farrecord', args=[p['far_record_id']], request=request)
+            p['links']['json'] = reverse('namespub-api-farrecord', args=[p['far_record_id']], request=request)
+    if document.get('wra_records'):
+        for p in document['wra_records']:
+            p['links'] = {}
+            p['links']['html'] = reverse('namespub-wrarecord', args=[p['wra_record_id']], request=request)
+            p['links']['json'] = reverse('namespub-api-wrarecord', args=[p['wra_record_id']], request=request)
+    if document.get('person'):
+        naan,noid = document['person']['id'].split('/')
+        document['person']['links'] = {}
+        document['person']['links']['html'] = reverse('namespub-person', args=[naan,noid], request=request)
+        document['person']['links']['json'] = reverse('namespub-api-person', args=[naan,noid], request=request)
+    
+    def add_links(p, idfield, value=None):
+        if not value:
+            value = idfield
+        p['links'] = {}
+        if idfield == 'far_record_id' and p.get(idfield):
+            p['links']['html'] = reverse('namespub-farrecord', args=[p[idfield]], request=request)
+            p['links']['json'] = reverse('namespub-api-farrecord', args=[p[idfield]], request=request)
+        elif idfield == 'wra_record_id' and p.get(idfield):
+            p['links']['html'] = reverse('namespub-wrarecord', args=[p[idfield]], request=request)
+            p['links']['json'] = reverse('namespub-api-wrarecord', args=[p[idfield]], request=request)
+        elif idfield == 'nr_id' and p.get(idfield):
+            naan,noid = p[idfield].split('/')
+            p['links'] = {}
+            p['links']['html'] = reverse('namespub-person', args=[naan,noid], request=request)
+            p['links']['json'] = reverse('namespub-api-person', args=[naan,noid], request=request)
+        return p
+    
+    if document.get('family'):
+        d['family'] = []
+        for p in document['family']:
+            # exclude self from family list
+            if document.get('nr_id') and (p['nr_id'] == document['nr_id']):
+                continue
+            elif document.get('far_record_id') and (p['far_record_id'] == document['far_record_id']):
+                continue
+            elif document.get('wra_record_id') and (p['wra_record_id'] == document['wra_record_id']):
+                continue
+            if p.get('far_record_id'): add_links(p, 'far_record_id')
+            if p.get('wra_record_id'): add_links(p, 'wra_record_id')
+            if p.get('nr_id'):         add_links(p, 'nr_id')
+            d['family'].append(p)
     
     return d
 
-def format_person(document, request, listitem=False):
+def format_person(document, request, highlights=None, listitem=False):
     oid = document['nr_id']
+    naan,noid = oid.split('/')
     model = 'person'
     d = OrderedDict()
     d['id'] = oid
@@ -678,16 +846,17 @@ def format_person(document, request, listitem=False):
     if document.get('index'):
         d['index'] = document.pop('index')
     d['links'] = OrderedDict()
-    d['links']['html'] = reverse('namesdb-person', args=[oid], request=request)
-    d['links']['json'] = reverse('namesdb-api-person', args=[oid], request=request)
+    d['links']['html'] = reverse('namespub-person', args=[naan,noid], request=request)
+    d['links']['json'] = reverse('namespub-api-person', args=[naan,noid], request=request)
     d['title'] = ''
     d['description'] = ''
     for field in FIELDS_BY_MODEL[model]:
         if document.get(field):
             d[field] = document.pop(field)
+    d['highlights'] = join_highlight_text(model, highlights)
     return d
 
-def format_farrecord(document, request, listitem=False):
+def format_farrecord(document, request, highlights=None, listitem=False):
     oid = document['far_record_id']
     model = 'farrecord'
     d = OrderedDict()
@@ -696,16 +865,17 @@ def format_farrecord(document, request, listitem=False):
     if document.get('index'):
         d['index'] = document.pop('index')
     d['links'] = OrderedDict()
-    d['links']['html'] = reverse('namesdb-farrecord', args=[oid], request=request)
-    d['links']['json'] = reverse('namesdb-api-farrecord', args=[oid], request=request)
+    d['links']['html'] = reverse('namespub-farrecord', args=[oid], request=request)
+    d['links']['json'] = reverse('namespub-api-farrecord', args=[oid], request=request)
     d['title'] = ''
     d['description'] = ''
     for field in FIELDS_BY_MODEL[model]:
         if document.get(field):
             d[field] = document.pop(field)
+    d['highlights'] = join_highlight_text(model, highlights)
     return d
 
-def format_wrarecord(document, request, listitem=False):
+def format_wrarecord(document, request, highlights=None, listitem=False):
     oid = document['wra_record_id']
     model = 'wrarecord'
     d = OrderedDict()
@@ -714,14 +884,26 @@ def format_wrarecord(document, request, listitem=False):
     if document.get('index'):
         d['index'] = document.pop('index')
     d['links'] = OrderedDict()
-    d['links']['html'] = reverse('namesdb-wrarecord', args=[oid], request=request)
-    d['links']['json'] = reverse('namesdb-api-wrarecord', args=[oid], request=request)
+    d['links']['html'] = reverse('namespub-wrarecord', args=[oid], request=request)
+    d['links']['json'] = reverse('namespub-api-wrarecord', args=[oid], request=request)
     d['title'] = ''
     d['description'] = ''
     for field in FIELDS_BY_MODEL[model]:
         if document.get(field):
             d[field] = document.pop(field)
+    d['highlights'] = join_highlight_text(model, highlights)
     return d
+
+def join_highlight_text(model, highlights):
+    """Concatenate highlight text for various fields into one str
+    """
+    snippets = []
+    for field in FIELDS_BY_MODEL[model]:
+        if hasattr(highlights, field):
+            vals = ' / '.join(getattr(highlights,field))
+            text = f'{field}: "{vals}"'
+            snippets.append(text)
+    return ', '.join(snippets)
 
 FORMATTERS = {
     'namesperson':    format_person,

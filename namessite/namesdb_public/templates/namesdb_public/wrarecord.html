@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load namesdb_public_tags %}
+
+{% block title %}{{ record.lastname }}, {{ record.firstname }} | Names{% endblock %}
+
+{% block breadcrumbs %}{{ block.super }}
+<li><a href="{% url "namespub-index" %}">Names Database</a></li>
+<li><a href="{% url "namespub-wrarecords" %}">WRA Form 26</a></li>
+<li>{{ record.lastname }}, {{ record.firstname }}</li>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<section class="container">
+
+  <h2>
+    <a href="{% url "namespub-index" %}">Names Registry</a>
+    - <a href="{% url "namespub-wrarecords" %}">wrarecord</a>
+    - <strong>{{ record.lastname }}, {{ record.firstname }}</strong>
+    <small class="font300">{{ record.far_record_id }}</small>
+  </h2>
+
+  <table class="table">
+    <tbody>
+
+      {% for key,value in record.items %}
+      <tr>
+        <th>
+          {{ key }}
+        </th>
+        <td>
+          {{ value }}
+        </td>
+      </tr>
+      {% endfor %}
+
+    </tbody>
+  </table>
+
+  <h3>Persons</h3>
+  <p>
+    <a href="{{ record.person.links.html }}">{{ record.person.name }}</a><br/>
+  </p>
+
+  <h3>Others in Family {{ record.familyno }}</h3>
+  <ul>
+    {% for record in record.family %}
+    <li>
+      <a href="{{ record.links.html }}">
+        {{ record.lastname }}
+        {{ record.firstname }}
+      </a>
+    {% endfor %}
+  </ul>
+
+</section><!-- .container -->
+{% endblock content %}

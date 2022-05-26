@@ -2,8 +2,6 @@ from collections import OrderedDict
 
 from django.conf import settings
 
-from elasticsearch import Elasticsearch
-
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request as RestRequest
@@ -11,13 +9,11 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from namesdb.definitions import SEARCH_FIELDS as NAMESDB_SEARCH_FIELDS
-from . import docstore
-from . import search
-from . import models
+from django.http.request import HttpRequest
 
-# set default hosts and index
-DOCSTORE = docstore.Docstore()
+from elastictools import search
+
+from . import models
 
 DEFAULT_LIMIT = 25
 
@@ -29,10 +25,10 @@ def index(request, format=None):
     """Swagger UI: /api/swagger/
     """
     data = {
-        'persons': reverse('namesdb-api-persons', request=request),
-        'farrecords': reverse('namesdb-api-farrecords', request=request),
-        'wrarecords': reverse('namesdb-api-wrarecords', request=request),
-        'search': reverse('namesdb-api-search', request=request),
+        'persons': reverse('namespub-api-persons', request=request),
+        'farrecords': reverse('namespub-api-farrecords', request=request),
+        'wrarecords': reverse('namespub-api-wrarecords', request=request),
+        'search': reverse('namespub-api-search', request=request),
     }
     return Response(data)
 
@@ -55,7 +51,7 @@ def persons(request, format=None):
     """List multiple Persons with filtering by most fields (exact values)
     """
     filters = _list_filters(request)
-    return _list(request, search.model_objects(
+    return _list(request, _model_objects(
         request, ['person'], filters, sort_fields=['id']
     ))
 
@@ -64,7 +60,7 @@ def farrecords(request, format=None):
     """List multiple FarRecords with filtering by most fields (exact values)
     """
     filters = _list_filters(request)
-    return _list(request, search.model_objects(
+    return _list(request, _model_objects(
         request, ['farrecord'], filters, sort_fields=['id']
     ))
 
@@ -73,7 +69,7 @@ def wrarecords(request, format=None):
     """List multiple WraRecords with filtering by most fields (exact values)
     """
     filters = _list_filters(request)
-    return _list(request, search.model_objects(
+    return _list(request, _model_objects(
         request, ['wrarecord'], filters, sort_fields=['id']
     ))
 
@@ -92,7 +88,8 @@ def _detail(request, data):
     return Response(data)
 
 @api_view(['GET'])
-def person(request, object_id, format=None):
+def person(request, naan, noid, format=None):
+    object_id = '/'.join([naan, noid])
     return _detail(request, models.Person.get(object_id, request))
 
 @api_view(['GET'])
@@ -115,9 +112,7 @@ class Search(APIView):
 
         Search API help: /api/search/help/
         """
-        if request.GET.get('fulltext'):
-            return self.grep(request)
-        return Response({})
+        return self.grep(request)
     
     def post(self, request, format=None):
         """Search the Names Database; good for more complicated custom searches.
@@ -128,9 +123,7 @@ class Search(APIView):
         
         Search API help: /api/search/help/
         """
-        if request.data.get('fulltext'):
-            return self.grep(request)
-        return Response({})
+        return self.grep(request)
     
     def grep(self, request):
         """NamesDB search
@@ -165,15 +158,60 @@ class Search(APIView):
             params = request.GET.copy()
         elif isinstance(request, RestRequest):
             params = request.query_params.dict()
+        
         searcher.prepare(
             params=params,
-            params_allowlist=['fulltext', 'm_camp'],
-            search_models=['names-record'],
-            fields=NAMESDB_SEARCH_FIELDS,
+            params_allowlist=['fulltext'] + models.SEARCH_INCLUDE_FIELDS_PERSON,
+            search_models=['namesperson'],
+            fields=models.SEARCH_INCLUDE_FIELDS_PERSON,
             fields_nested=[],
-            fields_agg={'m_camp':'m_camp'},
+            #fields_agg=models.AGG_FIELDS_PERSON,
+            fields_agg={'facility':'facility'},
         )
-        results = searcher.execute(limit, offset)
-        return Response(
-            results.ordered_dict(request, format_functions=models.FORMATTERS)
+        results = searcher.execute(limit, offset).ordered_dict(
+            request, format_functions=models.FORMATTERS
         )
+        aggs = results.pop('aggregations')
+        return Response(results)
+
+
+def model_objects(
+        request, modelnames, filters={}, sort_fields=[],
+        fields=models.SEARCH_INCLUDE_FIELDS, limit=DEFAULT_LIMIT, offset=0,
+        just_count=False
+):
+    """Return all documents in MODEL index (paged)
+    
+    Returns a paged list with count/prev/next metadata
+    
+    @param request: Django request object.
+    @param modelnames: list
+    @param sort_fields: list
+    @param fields: list
+    @param limit: int
+    @param offset: int
+    @param just_count: boolean
+    @returns: dict
+    """
+    ds = docstore.Docstore(INDEX_PREFIX, settings.DOCSTORE_HOST, settings)
+    indices = ','.join([ds.index_name(model) for model in modelnames])
+    params={
+        'match_all': {},
+        'sort': sort_fields,
+    }
+    if filters:
+        for key,val in filters.items():
+            params[key] = val
+    searcher = Searcher()
+    searcher.prepare(
+        params=params,
+        search_models=indices,
+        fields=fields,
+        fields_nested=[],
+        fields_agg={},
+    )
+    s = searcher.s.to_dict()
+    results = searcher.execute(limit, offset)
+    return results.ordered_dict(
+        request, format_functions=models.FORMATTERS
+    )

@@ -7,9 +7,7 @@ from django import forms
 from django.conf import settings
 from django.core.cache import cache
 
-from ui import docstore
-from ui import search
-
+from . import models
 
 # sorted version of facility and topics tree as choice fields
 # {
@@ -25,7 +23,7 @@ from ui import search
 #)['_source']
 # TODO should not be hard-coded - move to ddr-vocabs?
 FORMS_CHOICES = {
-    'm_camp-choices': [
+    'facility-choices': [
         ('4-amache', 'Amache'),
         ('3-gilariver', 'Gila River'),
         ('5-heartmountain', 'Heart Mountain'),
@@ -39,7 +37,7 @@ FORMS_CHOICES = {
     ]
 }
 FORMS_CHOICES_DEFAULT = {
-    'm_camp': [
+    'facility': [
         ('', 'All Camps'),
     ],
 }
@@ -64,7 +62,7 @@ for key in FORMS_CHOICES.keys():
 
 
 class SearchForm(forms.Form):
-    field_order = search.NAMESDB_SEARCH_PARAM_WHITELIST
+    #field_order = models.SEARCH_INCLUDE_FIELDS
     search_results = None
     
     def __init__( self, *args, **kwargs ):
@@ -74,31 +72,27 @@ class SearchForm(forms.Form):
         self.fields = self.construct_form(self.search_results)
 
     def construct_form(self, search_results):
-        
-        fields = OrderedDict()
-        fields['fulltext'] = forms.CharField(
-            required=False,
-            widget=forms.TextInput(
-                attrs={
-                    'class': 'form-control',
-                    'placeholder': 'Search the Registry...',
-                }
+        fields = [
+            (
+                'fulltext',
+                forms.CharField(
+                    max_length=255,
+                    required=False,
+                    widget=forms.TextInput(
+                        attrs={
+                            'id': 'id_query',
+                            'class': 'form-control',
+                            'placeholder': 'Search...',
+                        }
+                    ),
+                )
             ),
-        )
-        fields['m_camp'] = forms.ChoiceField(
-            required=False,
-            widget=forms.Select(
-                attrs={
-                    'class': 'form-control pointer',
-                }
-            ),
-            choices=FORMS_CHOICES_DEFAULT['m_camp']
-        )
+        ]
         
         # fill in options and doc counts from aggregations
         if search_results and search_results.aggregations:
             for fieldname,aggs in search_results.aggregations.items():
-                choices = deepcopy(FORMS_CHOICES_DEFAULT[fieldname])
+                choices = []
                 for item in aggs:
                     try:
                         label = FORMS_CHOICE_LABELS[fieldname][item['key']]
@@ -109,6 +103,17 @@ class SearchForm(forms.Form):
                         '%s (%s)' % (label, item['doc_count'])
                     )
                     choices.append(choice)
-                fields[fieldname].choices = choices
+                if choices:
+                    fields.append((
+                        fieldname,
+                        forms.MultipleChoiceField(
+                            label=models.SEARCH_FORM_LABELS.get(
+                                fieldname, fieldname),
+                            choices=choices,
+                            required=False,
+                        ),
+                    ))
         
+        # Django Form object takes an OrderedDict rather than list
+        fields = OrderedDict(fields)
         return fields
