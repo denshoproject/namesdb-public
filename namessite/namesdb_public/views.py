@@ -93,13 +93,12 @@ def search_ui(request, model=None):
     if request.GET.get('fulltext'):
         context['searching'] = True
         
+        params=request.GET.copy()
         searcher = search.Searcher(
             docstore.Docstore(
                 models.INDEX_PREFIX, settings.DOCSTORE_HOST, settings
             )
         )
-        params=request.GET.copy()
-        
         searcher.prepare(
             params=params,
             params_whitelist=['fulltext'] + params_allowlist,
