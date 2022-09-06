@@ -29,6 +29,7 @@ NON_FILTER_FIELDS = [
 
 def index(request, template_name='namesdb_public/index.html'):
     return render(request, template_name, {
+        'api_url': reverse('namespub-api-index'),
     })
 
 def persons(request, template_name='namesdb_public/persons.html'):
@@ -44,16 +45,19 @@ def person(request, naan, noid, template_name='namesdb_public/person.html'):
     object_id = '/'.join([naan, noid])
     return render(request, template_name, {
         'record': models.Person.get(object_id, request),
+        'api_url': reverse('namespub-api-person', args=[naan,noid]),
     })
 
 def farrecord(request, object_id, template_name='namesdb_public/farrecord.html'):
     return render(request, template_name, {
         'record': models.FarRecord.get(object_id, request),
+        'api_url': reverse('namespub-api-farrecord', args=[object_id]),
     })
 
 def wrarecord(request, object_id, template_name='namesdb_public/wrarecord.html'):
     return render(request, template_name, {
         'record': models.WraRecord.get(object_id, request),
+        'api_url': reverse('namespub-api-wrarecord', args=[object_id]),
     })
 
 def search_ui(request, model=None):
@@ -63,23 +67,22 @@ def search_ui(request, model=None):
         search_include_fields = models.SEARCH_INCLUDE_FIELDS_PERSON
         agg_fields = models.AGG_FIELDS_PERSON
         highlight_fields = models.HIGHLIGHT_FIELDS_PERSON
+        api_url = f"{reverse('namespub-api-persons')}?{request.META['QUERY_STRING']}"
     elif model == 'farrecord':
         search_models = ['namesfarrecord']
         params_allowlist = models.SEARCH_INCLUDE_FIELDS_FARRECORD
         search_include_fields = models.SEARCH_INCLUDE_FIELDS_FARRECORD
         agg_fields = models.AGG_FIELDS_FARRECORD
         highlight_fields = models.HIGHLIGHT_FIELDS_FARRECORD
+        api_url = f"{reverse('namespub-api-farrecords')}?{request.META['QUERY_STRING']}"
     elif model == 'wrarecord':
         search_models = ['nameswrarecord']
         params_allowlist = models.SEARCH_INCLUDE_FIELDS_WRARECORD
         search_include_fields = models.INCLUDE_FIELDS_WRARECORD
         agg_fields = models.AGG_FIELDS_WRARECORD
         highlight_fields = models.HIGHLIGHT_FIELDS_WRARECORD
-    
-    api_url = '%s?%s' % (
-        internal_url(request, reverse('namespub-api-search')),
-        request.META['QUERY_STRING']
-    )
+        api_url = f"{reverse('namespub-api-wrarecords')}?{request.META['QUERY_STRING']}"
+
     context = {
         'model': model,
         'searching': False,
@@ -90,13 +93,12 @@ def search_ui(request, model=None):
     if request.GET.get('fulltext'):
         context['searching'] = True
         
+        params=request.GET.copy()
         searcher = search.Searcher(
             docstore.Docstore(
                 models.INDEX_PREFIX, settings.DOCSTORE_HOST, settings
             )
         )
-        params=request.GET.copy()
-        
         searcher.prepare(
             params=params,
             params_whitelist=['fulltext'] + params_allowlist,

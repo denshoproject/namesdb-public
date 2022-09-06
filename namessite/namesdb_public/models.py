@@ -19,9 +19,6 @@ from . import definitions
 
 INDEX_PREFIX = 'names'
 
-# see if cluster is available, quit with nice message if not
-docstore.Docstore(INDEX_PREFIX, settings.DOCSTORE_HOST, settings).start_test()
-
 MAX_SIZE = 1000
 
 MODELS = [

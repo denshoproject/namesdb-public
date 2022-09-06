@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 
 from django.http.request import HttpRequest
 
-from elastictools import search
+from elastictools import docstore, search
 
 from . import models
 
@@ -51,8 +51,8 @@ def persons(request, format=None):
     """List multiple Persons with filtering by most fields (exact values)
     """
     filters = _list_filters(request)
-    return _list(request, _model_objects(
-        request, ['person'], filters, sort_fields=['id']
+    return _list(request, model_objects(
+        request, 'person', filters, sort_fields=['id']
     ))
 
 @api_view(['GET'])
@@ -60,8 +60,8 @@ def farrecords(request, format=None):
     """List multiple FarRecords with filtering by most fields (exact values)
     """
     filters = _list_filters(request)
-    return _list(request, _model_objects(
-        request, ['farrecord'], filters, sort_fields=['id']
+    return _list(request, model_objects(
+        request, 'farrecord', filters, sort_fields=['id']
     ))
 
 @api_view(['GET'])
@@ -69,14 +69,14 @@ def wrarecords(request, format=None):
     """List multiple WraRecords with filtering by most fields (exact values)
     """
     filters = _list_filters(request)
-    return _list(request, _model_objects(
-        request, ['wrarecord'], filters, sort_fields=['id']
+    return _list(request, model_objects(
+        request, 'wrarecord', filters, sort_fields=['id']
     ))
 
 def _list_filters(request):
     return {
         field: request.GET[field]
-        for field in search.SEARCH_PARAM_ALLOWLIST
+        for field in models.SEARCH_INCLUDE_FIELDS
         if request.GET.get(field)
     }
 
@@ -153,30 +153,37 @@ class Search(APIView):
             limit = settings.RESULTS_PER_PAGE
             offset = 0
         
-        searcher = search.Searcher()
         if isinstance(request, HttpRequest):
             params = request.GET.copy()
         elif isinstance(request, RestRequest):
             params = request.query_params.dict()
-        
+        searcher = search.Searcher(
+            docstore.Docstore(
+                models.INDEX_PREFIX, settings.DOCSTORE_HOST, settings
+            )
+        )
         searcher.prepare(
             params=params,
-            params_allowlist=['fulltext'] + models.SEARCH_INCLUDE_FIELDS_PERSON,
+            params_whitelist=['fulltext'] + models.SEARCH_INCLUDE_FIELDS_PERSON,
             search_models=['namesperson'],
-            fields=models.SEARCH_INCLUDE_FIELDS_PERSON,
+            sort=[],
+            #fields=models.SEARCH_INCLUDE_FIELDS_PERSON,
+            fields=['id','model','nr_id','preferred_name'],
             fields_nested=[],
-            #fields_agg=models.AGG_FIELDS_PERSON,
-            fields_agg={'facility':'facility'},
+            fields_agg=models.AGG_FIELDS_PERSON,
+            #highlight_fields=highlight_fields,
         )
-        results = searcher.execute(limit, offset).ordered_dict(
-            request, format_functions=models.FORMATTERS
+        results = searcher.execute(limit, offset)
+        data = results.to_dict(
+            request=request,
+            format_functions=models.FORMATTERS,
+            #pad=True,
         )
-        aggs = results.pop('aggregations')
-        return Response(results)
+        return Response(data)
 
 
 def model_objects(
-        request, modelnames, filters={}, sort_fields=[],
+        request, model, filters={}, sort_fields=[],
         fields=models.SEARCH_INCLUDE_FIELDS, limit=DEFAULT_LIMIT, offset=0,
         just_count=False
 ):
@@ -185,7 +192,7 @@ def model_objects(
     Returns a paged list with count/prev/next metadata
     
     @param request: Django request object.
-    @param modelnames: list
+    @param model: str
     @param sort_fields: list
     @param fields: list
     @param limit: int
@@ -193,24 +200,41 @@ def model_objects(
     @param just_count: boolean
     @returns: dict
     """
-    ds = docstore.Docstore(INDEX_PREFIX, settings.DOCSTORE_HOST, settings)
-    indices = ','.join([ds.index_name(model) for model in modelnames])
-    params={
-        'match_all': {},
-        'sort': sort_fields,
-    }
-    if filters:
-        for key,val in filters.items():
-            params[key] = val
-    searcher = Searcher()
+    if model in ['person', 'persons']:
+        search_models = ['namesperson']
+        params_allowlist = models.SEARCH_INCLUDE_FIELDS_PERSON
+        search_include_fields = models.SEARCH_INCLUDE_FIELDS_PERSON
+        agg_fields = models.AGG_FIELDS_PERSON
+        highlight_fields = models.HIGHLIGHT_FIELDS_PERSON
+    elif model in ['farrecord', 'farrecords']:
+        search_models = ['namesfarrecord']
+        params_allowlist = models.SEARCH_INCLUDE_FIELDS_FARRECORD
+        search_include_fields = models.SEARCH_INCLUDE_FIELDS_FARRECORD
+        agg_fields = models.AGG_FIELDS_FARRECORD
+        highlight_fields = models.HIGHLIGHT_FIELDS_FARRECORD
+    elif model in ['wrarecord', 'wrarecords']:
+        search_models = ['nameswrarecord']
+        params_allowlist = models.SEARCH_INCLUDE_FIELDS_WRARECORD
+        search_include_fields = models.INCLUDE_FIELDS_WRARECORD
+        agg_fields = models.AGG_FIELDS_WRARECORD
+        highlight_fields = models.HIGHLIGHT_FIELDS_WRARECORD
+    
+    params=request.GET.copy()
+    searcher = search.Searcher(
+        docstore.Docstore(
+            models.INDEX_PREFIX, settings.DOCSTORE_HOST, settings
+        )
+    )
     searcher.prepare(
         params=params,
-        search_models=indices,
-        fields=fields,
+        params_whitelist=['fulltext'] + params_allowlist,
+        search_models=search_models,
+        sort=[],
+        fields=search_include_fields,
         fields_nested=[],
-        fields_agg={},
+        fields_agg=agg_fields,
+        #highlight_fields=highlight_fields,
     )
-    s = searcher.s.to_dict()
     results = searcher.execute(limit, offset)
     return results.ordered_dict(
         request, format_functions=models.FORMATTERS
