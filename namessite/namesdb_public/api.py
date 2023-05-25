@@ -172,6 +172,7 @@ class Search(APIView):
             fields_nested=[],
             fields_agg=models.AGG_FIELDS_PERSON,
             #highlight_fields=highlight_fields,
+            wildcards=False,
         )
         results = searcher.execute(limit, offset)
         data = results.to_dict(
@@ -234,6 +235,7 @@ def model_objects(
         fields_nested=[],
         fields_agg=agg_fields,
         #highlight_fields=highlight_fields,
+        wildcards=False,
     )
     results = searcher.execute(limit, offset)
     return results.ordered_dict(

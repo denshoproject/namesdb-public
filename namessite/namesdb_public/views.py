@@ -108,6 +108,7 @@ def search_ui(request, model=None):
             fields_nested=[],
             fields_agg=agg_fields,
             #highlight_fields=highlight_fields,
+            wildcards=False,
         )
         limit,offset = _limit_offset(request)
         results = searcher.execute(limit, offset)
