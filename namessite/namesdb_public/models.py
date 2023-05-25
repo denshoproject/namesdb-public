@@ -386,8 +386,10 @@ FIELDS_FARRECORD = [
     'entry_facility', 'pre_evacuation_address', 'pre_evacuation_state',
     'date_of_original_entry', 'departure_type_code', 'departure_type',
     'departure_category', 'departure_facility', 'departure_date',
-    'departure_state', 'camp_address_original', 'camp_address_block',
-    'camp_address_barracks', 'camp_address_room', 'reference', 'original_notes',
+    'departure_destination', 'departure_state',
+    'camp_address_original', 'camp_address_block', 'camp_address_barracks',
+    'camp_address_room',
+    'reference', 'original_notes',
     'person', 'timestamp',
 ]
 
@@ -418,6 +420,7 @@ AGG_FIELDS_FARRECORD = {
     'departure_type': 'departure_type',
     'departure_category': 'departure_category',
     'departure_facility': 'departure_facility',
+    'departure_destination': 'departure_destination',
     'departure_state': 'departure_state',
     'camp_address_original': 'camp_address_original',
     'camp_address_block': 'camp_address_block',
@@ -468,6 +471,7 @@ class FarRecord(Record):
     departure_category      = dsl.Keyword()
     departure_facility      = dsl.Keyword()
     departure_date          = dsl.Keyword()
+    departure_destination   = dsl.Keyword()
     departure_state         = dsl.Keyword()
     camp_address_original   = dsl.Keyword()
     camp_address_block      = dsl.Keyword()
