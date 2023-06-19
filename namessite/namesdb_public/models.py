@@ -378,6 +378,40 @@ class PersonFacility(Record):
         return f'<PersonFacility {self.person_id},{self.facility_id}>'
 
 
+FIELDS_PERSONLOCATION = [
+    'person_id',
+    'location',
+    'geo_lat',
+    'geo_lng',
+    'entry_date',
+    'exit_date',
+    'sort_start',
+    'sort_end',
+    'facility_id',
+    'facility_address',
+    'notes',
+]
+
+class PersonLocation(Record):
+    """PersonLocation record model
+    """
+    person_id                     = dsl.Keyword()
+    location                      = dsl.Text()
+    geo_lat                       = dsl.Text()
+    geo_lng                       = dsl.Text()
+    entry_date                    = dsl.Date()
+    exit_date                     = dsl.Date()
+    sort_start                    = dsl.Date()
+    sort_end                      = dsl.Date()
+    facility_id                   = dsl.Keyword()
+    facility_address              = dsl.Text()
+    notes                         = dsl.Text()
+
+    class Index:
+        model = 'personlocation'
+        name = f'{INDEX_PREFIX}personlocation'
+
+
 FIELDS_FARRECORD = [
     'far_record_id', 'facility', 'original_order', 'family_number',
     'far_line_id', 'last_name', 'first_name', 'other_names', 'date_of_birth',
