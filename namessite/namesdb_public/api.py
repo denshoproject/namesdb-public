@@ -100,6 +100,16 @@ def farrecord(request, object_id, format=None):
 def wrarecord(request, object_id, format=None):
     return _detail(request, models.WraRecord.get(object_id, request))
 
+@api_view(['GET'])
+def farpages(request, format=None):
+    """List multiple FarRecords with filtering by most fields (exact values)
+    """
+    pass
+
+@api_view(['GET'])
+def farpage(request, facility_id, far_page, format=None):
+    return _detail(request, models.FarPage.get(facility_id, far_page, request))
+
 
 class Search(APIView):
     

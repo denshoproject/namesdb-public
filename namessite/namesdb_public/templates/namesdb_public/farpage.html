@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load namesdb_public_tags %}
+
+{% block title %}{{ farpage.facility_id }}, {{ farpage.page }} | Names{% endblock %}
+
+{% block breadcrumbs %}{{ block.super }}
+<li><a href="{% url "namespub-index" %}">Names Database</a></li>
+<li><a href="{% url "namespub-farpages" %}">FAR Pages</a></li>
+<li>{{ farpage.facility_id }}, {{ farpage.page }}</li>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<section class="container">
+
+  <h2>
+    <a href="{% url "namespub-index" %}">Names Registry</a>
+    - <a href="{% url "namespub-farpages" %}">FAR Pages</a>
+    - <strong>{{ farpage.far_page_id }}</strong>
+  </h2>
+
+  <p>
+    <a href="{% url "namespub-farpage" farpage.facility_id farpage_prev %}">Previous</a>
+    <a href="{% url "namespub-farpage" farpage.facility_id farpage_next %}">Next</a>
+  </p>
+  <h3>
+    {{ farpage.file_label }}
+    ({{ farpage.file_id }})
+  </h3>
+
+  <p>
+    <img src="https://ddr.densho.org/media/ddr-densho-305/{{ farpage.file_id }}-a.jpg" width=800 />
+  </p>
+
+  <ul>
+  {% for farrecord in farrecords %}
+  <li>
+    <a href="{% url "namespub-farrecord" farrecord.far_record_id %}">{{ farrecord }}</a>
+      {{ farrecord.last_name }},
+      {{ farrecord.first_name }}
+      {% if farrecord.middle_name %}{{ farrecord.middle_name }}{% endif %}
+      {% if farrecord.other_names %}{{ farrecord.other_names }}{% endif %}
+      ({{ farrecord.date_of_birth }})
+    </li>
+  {% endfor %}
+  </ul>
+
+</section><!-- .container -->
+{% endblock content %}
