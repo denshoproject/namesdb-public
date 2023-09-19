@@ -34,6 +34,28 @@
     </tbody>
   </table>
 
+  <h3>FarPage</h3>
+
+  {% if record.far_page %}
+  <a href="{% url "namespub-farpage" record.facility record.far_page %}">{{ record.facility }}/{{ record.far_page }}</a>
+  {% else %}
+  no farpage
+  {% endif %}
+  <table class="table">
+    <tbody>
+      {% for key,value in farpage.items %}{% if value %}
+      <tr>
+        <th>
+          {{ key }}
+        </th>
+        <td>
+          {{ value }}
+        </td>
+      </tr>
+      {% endif %}{% endfor %}
+    </tbody>
+  </table>
+
   <h3>Persons</h3>
   <p>
     <a href="{{ record.person.links.html }}">{{ record.person.name }}</a><br/>

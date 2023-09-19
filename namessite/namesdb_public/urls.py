@@ -50,6 +50,11 @@ urlpatterns = [
     path('api/1.0/persons/', api.persons, name='namespub-api-persons'),
     path('api/1.0/farrecords/', api.farrecords, name='namespub-api-farrecords'),
     path('api/1.0/wrarecords/', api.wrarecords, name='namespub-api-wrarecords'),
+    re_path(
+        r'^api/1.0/farpages/(?P<facility_id>[0-9a-zA-Z_:-]+)/(?P<far_page>[0-9]+)',
+        api.farpage, name='namespub-api-farpage'
+    ),
+    path('api/1.0/farpages/', api.farpages, name='namespub-api-farpages'),
     path('api/1.0/search/', api.Search.as_view(), name='namespub-api-search'),
     path('api/1.0/', api.index, name='namespub-api-index'),
     
@@ -69,5 +74,10 @@ urlpatterns = [
     path('persons/', views.persons, name='namespub-persons'),
     path('farrecords/', views.farrecords, name='namespub-farrecords'),
     path('wrarecords/', views.wrarecords, name='namespub-wrarecords'),
+    re_path(
+        r'^farpages/(?P<facility_id>[0-9a-zA-Z_:-]+)/(?P<far_page>[0-9]+)',
+        views.farpage, name='namespub-farpage'
+    ),
+    path('farpages/', views.farpages, name='namespub-farpages'),
     path('', views.index, name='namespub-index'),
 ]
