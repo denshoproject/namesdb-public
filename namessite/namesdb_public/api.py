@@ -100,6 +100,16 @@ def farrecord(request, object_id, format=None):
 def wrarecord(request, object_id, format=None):
     return _detail(request, models.WraRecord.get(object_id, request))
 
+@api_view(['GET'])
+def farpages(request, format=None):
+    """List multiple FarRecords with filtering by most fields (exact values)
+    """
+    pass
+
+@api_view(['GET'])
+def farpage(request, facility_id, far_page, format=None):
+    return _detail(request, models.FarPage.get(facility_id, far_page, request))
+
 
 class Search(APIView):
     
@@ -172,6 +182,7 @@ class Search(APIView):
             fields_nested=[],
             fields_agg=models.AGG_FIELDS_PERSON,
             #highlight_fields=highlight_fields,
+            wildcards=False,
         )
         results = searcher.execute(limit, offset)
         data = results.to_dict(
@@ -234,6 +245,7 @@ def model_objects(
         fields_nested=[],
         fields_agg=agg_fields,
         #highlight_fields=highlight_fields,
+        wildcards=False,
     )
     results = searcher.execute(limit, offset)
     return results.ordered_dict(

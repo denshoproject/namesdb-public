@@ -60,6 +60,22 @@ def wrarecord(request, object_id, template_name='namesdb_public/wrarecord.html')
         'api_url': reverse('namespub-api-wrarecord', args=[object_id]),
     })
 
+def farpages(request, template_name='namesdb_public/farpages.html'):
+    return render(request, template_name, {
+        'facilities': models.FarPage.facilities(),
+    })
+
+def farpage(request, facility_id, far_page, template_name='namesdb_public/farpage.html'):
+    farpage = models.FarPage.get(facility_id, far_page, request)
+    farrecords = models.FarPage.farrecords(facility_id, far_page, request)
+    return render(request, template_name, {
+        'farpage': farpage,
+        'farpage_prev': int(far_page) - 1,
+        'farpage_next': int(far_page) + 1,
+        'farrecords': farrecords,
+        'api_url': reverse('namespub-api-farpage', args=[facility_id, far_page]),
+    })
+
 def search_ui(request, model=None):
     if model == 'person':
         search_models = ['namesperson']
@@ -108,6 +124,7 @@ def search_ui(request, model=None):
             fields_nested=[],
             fields_agg=agg_fields,
             #highlight_fields=highlight_fields,
+            wildcards=False,
         )
         limit,offset = _limit_offset(request)
         results = searcher.execute(limit, offset)

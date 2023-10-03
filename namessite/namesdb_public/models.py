@@ -25,6 +25,7 @@ MODELS = [
     'person',
     'farrecord',
     'wrarecord',
+    'farpage',
 ]
 SEARCH_MODELS = MODELS
 DOCTYPES = [f'{INDEX_PREFIX}{model}' for model in MODELS]
@@ -378,16 +379,168 @@ class PersonFacility(Record):
         return f'<PersonFacility {self.person_id},{self.facility_id}>'
 
 
+FIELDS_PERSONLOCATION = [
+    'person_id',
+    'location',
+    'geo_lat',
+    'geo_lng',
+    'entry_date',
+    'exit_date',
+    'sort_start',
+    'sort_end',
+    'facility_id',
+    'facility_address',
+    'notes',
+]
+
+class PersonLocation(Record):
+    """PersonLocation record model
+    """
+    person_id                     = dsl.Keyword()
+    location                      = dsl.Text()
+    geo_lat                       = dsl.Text()
+    geo_lng                       = dsl.Text()
+    entry_date                    = dsl.Date()
+    exit_date                     = dsl.Date()
+    sort_start                    = dsl.Date()
+    sort_end                      = dsl.Date()
+    facility_id                   = dsl.Keyword()
+    facility_address              = dsl.Text()
+    notes                         = dsl.Text()
+
+    class Index:
+        model = 'personlocation'
+        name = f'{INDEX_PREFIX}personlocation'
+
+
+FIELDS_FARPAGE = [
+    'far_page_id', 'facility_id', 'page', 'file_id', 'file_label'
+]
+
+SEARCH_EXCLUDE_FIELDS_FARPAGE = []
+
+INCLUDE_FIELDS_FARPAGE = [
+    'far_page_id', 'facility_id', 'page', 'file_id', 'file_label'
+]
+
+EXCLUDE_FIELDS_FARPAGE = []
+
+AGG_FIELDS_FARPAGE = {}
+
+HIGHLIGHT_FIELDS_FARRECORD = []
+
+class FarPage(dsl.Document):
+    far_page_id             = dsl.Keyword()
+    facility_id             = dsl.Keyword()
+    page                    = dsl.Keyword()
+    file_id                 = dsl.Keyword()
+    file_label              = dsl.Text()
+
+    class Index:
+        model = 'farpage'
+        name = f'{INDEX_PREFIX}farpage'
+
+    def __repr__(self):
+        return f'<FarPage {self.far_page_id}>'
+
+    @staticmethod
+    def es_id(facility_id, far_page):
+        return f'{facility_id}_{far_page}'
+
+    @staticmethod
+    def get(facility_id, far_page, request):
+        """Get record for web app"""
+        return docstore_object(
+            request, 'farpage', FarPage.es_id(facility_id, far_page)
+        )
+
+    @staticmethod
+    def facilities():
+        FACILITIES = [
+            {
+                "id": "1-topaz",
+                "ddr_id": "ddr-densho-305-1",
+                "img": "https://ddr.densho.org/media/ddr-densho-305/ddr-densho-305-1-mezzanine-d06c44920d-a.jpg",
+                "title": "Final Accountability Roster of Evacuees at Relocation Centers, 1944-1946, Central Utah [Topaz]",
+            },
+            {
+                "id": "2-poston",
+                "ddr_id": "ddr-densho-305-2",
+                "img": "https://ddr.densho.org/media/ddr-densho-305/ddr-densho-305-2-mezzanine-a811fe14d5-a.jpg",
+                "title": "Final Accountability Roster of Evacuees at Relocation Centers, 1944-1946, Colorado River [Poston]",
+            },
+            {
+                "id": "3-gilariver",
+                "ddr_id": "ddr-densho-305-3",
+                "img": "https://ddr.densho.org/media/ddr-densho-305/ddr-densho-305-3-mezzanine-b542a2dbde-a.jpg",
+                "title": "Final Accountability Roster of Evacuees at Relocation Centers, 1944-1946, Gila River",
+            },
+            {
+                "id": "4-amache",
+                "ddr_id": "ddr-densho-305-4",
+                "img": "https://ddr.densho.org/media/ddr-densho-305/ddr-densho-305-4-mezzanine-022edf8dab-a.jpg",
+                "title": "Final Accountability Roster of Evacuees at Relocation Centers, 1944-1946, Granada [Amache]",
+            },
+            {
+                "id": "5-heartmountain",
+                "ddr_id": "ddr-densho-305-5",
+                "img": "https://ddr.densho.org/media/ddr-densho-305/ddr-densho-305-5-mezzanine-20adec879c-a.jpg",
+                "title": "Final Accountability Roster of Evacuees at Relocation Centers, 1944-1946, Heart Mountain",
+            },
+            {
+                "id": "6-jerome",
+                "ddr_id": "ddr-densho-305-6",
+                "img": "https://ddr.densho.org/media/ddr-densho-305/ddr-densho-305-6-mezzanine-90d46fb454-a.jpg",
+                "title": "Final Accountability Roster of Evacuees at Relocation Centers, 1944-1946, Jerome",
+            },
+            {
+                "id": "7-manzanar",
+                "ddr_id": "ddr-densho-305-7",
+                "img": "https://ddr.densho.org/media/ddr-densho-305/ddr-densho-305-7-mezzanine-efd3b7b6ef-a.jpg",
+                "title": "Final Accountability Roster of Evacuees at Relocation Centers, 1944-1946, Manzanar",
+            },
+            {
+                "id": "8-minidoka",
+                "ddr_id": "ddr-densho-305-8",
+                "img": "https://ddr.densho.org/media/ddr-densho-305/ddr-densho-305-8-mezzanine-a81d68f6fe-a.jpg",
+                "title": "Final Accountability Roster of Evacuees at Relocation Centers, 1944-1946, Minidoka",
+            },
+            {
+                "id": "9-rohwer",
+                "ddr_id": "ddr-densho-305-9",
+                "img": "https://ddr.densho.org/media/ddr-densho-305/ddr-densho-305-9-mezzanine-fbc74542cb-a.jpg",
+                "title": "Final Accountability Roster of Evacuees at Relocation Centers, 1944-1946, Rohwer",
+            },
+            {
+                "id": "10-tulelake",
+                "ddr_id": "ddr-densho-305-10",
+                "img": "https://ddr.densho.org/media/ddr-densho-305/ddr-densho-305-10-mezzanine-980589be39-a.jpg",
+                "title": "Final Accountability Roster of Evacuees at Relocation Centers, 1944-1946, Tule Lake",
+            }
+        ]
+        return FACILITIES
+
+    @staticmethod
+    def farrecords(facility_id, far_page, request):
+        ds = docstore.Docstore(INDEX_PREFIX, settings.DOCSTORE_HOST, settings)
+        s = FarRecord.search(using=ds.es)
+        s = s.filter('term', facility=facility_id)
+        s = s.filter('term', far_page=int(far_page))
+        return s[:1000].execute()
+
+
 FIELDS_FARRECORD = [
-    'far_record_id', 'facility', 'original_order', 'family_number',
+    'far_record_id', 'facility', 'far_page', 'original_order', 'family_number',
     'far_line_id', 'last_name', 'first_name', 'other_names', 'date_of_birth',
     'year_of_birth', 'sex', 'marital_status', 'citizenship',
     'alien_registration', 'entry_type_code', 'entry_type', 'entry_category',
     'entry_facility', 'pre_evacuation_address', 'pre_evacuation_state',
     'date_of_original_entry', 'departure_type_code', 'departure_type',
     'departure_category', 'departure_facility', 'departure_date',
-    'departure_state', 'camp_address_original', 'camp_address_block',
-    'camp_address_barracks', 'camp_address_room', 'reference', 'original_notes',
+    'departure_destination', 'departure_state',
+    'camp_address_original', 'camp_address_block', 'camp_address_barracks',
+    'camp_address_room',
+    'reference', 'original_notes',
     'person', 'timestamp',
 ]
 
@@ -418,6 +571,7 @@ AGG_FIELDS_FARRECORD = {
     'departure_type': 'departure_type',
     'departure_category': 'departure_category',
     'departure_facility': 'departure_facility',
+    'departure_destination': 'departure_destination',
     'departure_state': 'departure_state',
     'camp_address_original': 'camp_address_original',
     'camp_address_block': 'camp_address_block',
@@ -444,6 +598,7 @@ class FarRecord(Record):
     """
     far_record_id           = dsl.Keyword()
     facility                = dsl.Keyword()
+    far_page                = dsl.Keyword()
     original_order          = dsl.Keyword()
     family_number           = dsl.Keyword()
     far_line_id             = dsl.Keyword()
@@ -468,6 +623,7 @@ class FarRecord(Record):
     departure_category      = dsl.Keyword()
     departure_facility      = dsl.Keyword()
     departure_date          = dsl.Keyword()
+    departure_destination   = dsl.Keyword()
     departure_state         = dsl.Keyword()
     camp_address_original   = dsl.Keyword()
     camp_address_block      = dsl.Keyword()
@@ -695,32 +851,37 @@ DOCTYPES_BY_MODEL = {
     'person':    f'{INDEX_PREFIX}person',
     'farrecord': f'{INDEX_PREFIX}farrecord',
     'wrarecord': f'{INDEX_PREFIX}wrarecord',
+    'farpage': f'{INDEX_PREFIX}farpage',
 }
 
 ELASTICSEARCH_CLASSES_BY_MODEL = {
     'person': Person,
     'farrecord': FarRecord,
     'wrarecord': WraRecord,
+    'farpage': FarPage,
 }
 
 FIELDS_BY_MODEL = {
     'person': FIELDS_PERSON,
     'farrecord': FIELDS_FARRECORD,
     'wrarecord': FIELDS_WRARECORD,
+    'farpage': FIELDS_FARPAGE,
 }
 
 SEARCH_INCLUDE_FIELDS_PERSON    = [x for x in FIELDS_PERSON    if (x not in SEARCH_EXCLUDE_FIELDS_PERSON)]
 SEARCH_INCLUDE_FIELDS_FARRECORD = [x for x in FIELDS_FARRECORD if (x not in SEARCH_EXCLUDE_FIELDS_FARRECORD)]
 SEARCH_INCLUDE_FIELDS_WRARECORD = [x for x in FIELDS_WRARECORD if (x not in SEARCH_EXCLUDE_FIELDS_WRARECORD)]
+SEARCH_INCLUDE_FIELDS_FARPAGE = [x for x in FIELDS_FARPAGE if (x not in SEARCH_EXCLUDE_FIELDS_FARPAGE)]
 
 SEARCH_INCLUDE_FIELDS = list(set(
       SEARCH_INCLUDE_FIELDS_PERSON
     + SEARCH_INCLUDE_FIELDS_FARRECORD
     + SEARCH_INCLUDE_FIELDS_WRARECORD
+    + SEARCH_INCLUDE_FIELDS_FARPAGE
 ))
 
 SEARCH_AGG_FIELDS = {}
-for fieldset in [AGG_FIELDS_PERSON, AGG_FIELDS_FARRECORD, AGG_FIELDS_WRARECORD]:
+for fieldset in [AGG_FIELDS_PERSON, AGG_FIELDS_FARRECORD, AGG_FIELDS_WRARECORD, AGG_FIELDS_FARPAGE]:
     for key,val in fieldset.items():
         SEARCH_AGG_FIELDS[key] = val
 
@@ -891,6 +1052,26 @@ def format_wrarecord(document, request, highlights=None, listitem=False):
     d['highlights'] = join_highlight_text(model, highlights)
     return d
 
+def format_farpage(document, request, highlights=None, listitem=False):
+    oid = document['far_page_id']
+    model = 'farpage'
+    d = OrderedDict()
+    d['id'] = oid
+    d['model'] = model
+    if document.get('index'):
+        d['index'] = document.pop('index')
+    d['links'] = OrderedDict()
+    facility_id = document['facility_id']; far_page = document['page']
+    d['links']['html'] = reverse(
+        'namespub-farpage', args=[facility_id,far_page], request=request)
+    d['links']['json'] = reverse(
+        'namespub-api-farpage', args=[facility_id,far_page], request=request)
+    for field in FIELDS_BY_MODEL[model]:
+        if document.get(field):
+            d[field] = document.pop(field)
+    d['highlights'] = join_highlight_text(model, highlights)
+    return d
+
 def join_highlight_text(model, highlights):
     """Concatenate highlight text for various fields into one str
     """
@@ -906,4 +1087,5 @@ FORMATTERS = {
     'namesperson':    format_person,
     'namesfarrecord': format_farrecord,
     'nameswrarecord': format_wrarecord,
+    'namesfarpage': format_farpage,
 }
