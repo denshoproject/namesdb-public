@@ -205,7 +205,7 @@ def assemble_fulltext(record, fieldnames):
 FIELDS_PERSON = [
     'nr_id', 'family_name', 'given_name', 'given_name_alt', 'other_names',
     'middle_name', 'prefix_name', 'suffix_name', 'jp_name', 'preferred_name',
-    'birth_date', 'birth_date_text', 'birth_place', 'death_date',
+    'birth_date', 'birth_date_text', 'birth_year', 'birth_place', 'death_date',
     'death_date_text', 'wra_family_no', 'wra_individual_no', 'citizenship',
     'alien_registration_no', 'gender', 'preexclusion_residence_city',
     'preexclusion_residence_state', 'postexclusion_residence_city',
@@ -216,6 +216,7 @@ FIELDS_PERSON = [
 
 SEARCH_EXCLUDE_FIELDS_PERSON = [
     'birth_date', 'death_date', 'timestamp',  # can't search fulltext on dates
+    'birth_year',
     'facilities', 'far_records', 'wra_records', 'family',  # relation pointers
 ]
 
@@ -232,6 +233,7 @@ EXCLUDE_FIELDS_PERSON = []
 AGG_FIELDS_PERSON = {
     'citizenship': 'citizenship',
     'gender': 'gender',
+    'birth_year': 'birth_year',
     'preexclusion_residence_city': 'preexclusion_residence_city',
     'preexclusion_residence_state': 'preexclusion_residence_state',
     'postexclusion_residence_city': 'postexclusion_residence_city',
@@ -284,6 +286,7 @@ class Person(Record):
     preferred_name                = dsl.Text()
     birth_date                    = dsl.Date()
     birth_date_text               = dsl.Text()
+    birth_year                    = dsl.Keyword()
     birth_place                   = dsl.Text()
     death_date                    = dsl.Date()
     death_date_text               = dsl.Text()
@@ -338,6 +341,9 @@ class Person(Record):
                 }
                 for person in data['family']
             ]
+        # add field to ease filtering by birth_year
+        if data.get('birth_date'):
+            record.birth_year = data['birth_date'].year
         return record
     
     @staticmethod
