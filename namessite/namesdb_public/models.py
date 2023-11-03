@@ -211,13 +211,14 @@ FIELDS_PERSON = [
     'preexclusion_residence_state', 'postexclusion_residence_city',
     'postexclusion_residence_state', 'exclusion_order_title',
     'exclusion_order_id', 'timestamp',
-    'facilities', 'far_records', 'wra_records',
+    'facilities', 'facility_id', 'far_records', 'wra_records',
 ]
 
 SEARCH_EXCLUDE_FIELDS_PERSON = [
     'birth_date', 'death_date', 'timestamp',  # can't search fulltext on dates
     'birth_year',
     'facilities', 'far_records', 'wra_records', 'family',  # relation pointers
+    'facility_id',
 ]
 
 INCLUDE_FIELDS_PERSON = [
@@ -234,6 +235,7 @@ AGG_FIELDS_PERSON = {
     'citizenship': 'citizenship',
     'gender': 'gender',
     'birth_year': 'birth_year',
+    'facility_id': 'facility_id',
     'preexclusion_residence_city': 'preexclusion_residence_city',
     'preexclusion_residence_state': 'preexclusion_residence_state',
     'postexclusion_residence_city': 'postexclusion_residence_city',
@@ -303,6 +305,7 @@ class Person(Record):
     exclusion_order_id            = dsl.Keyword()
     timestamp                     = dsl.Date()
     facilities                    = dsl.Nested(ListFacility)
+    facility_id                   = dsl.Keyword(multi=True)
     far_records                   = dsl.Nested(ListFarRecord)
     wra_records                   = dsl.Nested(ListWraRecord)
     family                        = dsl.Nested(ListFamily)
@@ -341,9 +344,11 @@ class Person(Record):
                 }
                 for person in data['family']
             ]
-        # add field to ease filtering by birth_year
+        # add fields to ease filtering by birth_year and facilities
         if data.get('birth_date'):
             record.birth_year = data['birth_date'].year
+        if data.get('facilities'):
+            record.facility_id = [f['facility_id'] for f in data['facilities']]
         return record
     
     @staticmethod
