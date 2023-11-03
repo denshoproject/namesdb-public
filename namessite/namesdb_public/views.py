@@ -126,6 +126,17 @@ def search_ui(request, model=None):
             #highlight_fields=highlight_fields,
             wildcards=False,
         )
+        # filter on denormalized values for birth_date and PersonFacility
+        # TODO integrate into elastictools.search.prepare or hard-code
+        if model == 'person':
+            if 'birth_year' in params.keys():
+                searcher.s = searcher.s.filter(
+                    'term', **{'birth_year': params['birth_year']}
+                )
+            if 'facility_id' in params.keys():
+                searcher.s = searcher.s.filter(
+                    'term', **{'facility_id': params['facility_id']}
+                )
         limit,offset = _limit_offset(request)
         results = searcher.execute(limit, offset)
         paginator = Paginator(
