@@ -330,9 +330,7 @@ class Person(Record):
         @returns: Person
         """
         # exclude private fields
-        fieldnames = [
-            f for f in FIELDS_PERSON if f not in EXCLUDE_FIELDS_PERSON
-        ]
+        fieldnames = [f for f in FIELDS_PERSON]
         record = Record.from_dict(Person, fieldnames, nr_id, data)
         assemble_fulltext(record, fieldnames)
         record.family = []
@@ -349,6 +347,10 @@ class Person(Record):
             record.birth_year = data['birth_date'].year
         if data.get('facilities'):
             record.facility_id = [f['facility_id'] for f in data['facilities']]
+        # remove redacted fields
+        for fieldname in EXCLUDE_FIELDS_PERSON:
+            if hasattr(record, fieldname):
+               delattr(record, fieldname)
         return record
     
     @staticmethod
