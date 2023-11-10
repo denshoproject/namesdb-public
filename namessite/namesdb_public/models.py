@@ -229,7 +229,9 @@ INCLUDE_FIELDS_PERSON = [
     'exclusion_order_title',
 ]
 
-EXCLUDE_FIELDS_PERSON = []
+EXCLUDE_FIELDS_PERSON = [
+    'birth_date', 'birth_date_text',
+]
 
 AGG_FIELDS_PERSON = {
     'citizenship': 'citizenship',
@@ -245,7 +247,8 @@ AGG_FIELDS_PERSON = {
 }
 
 HIGHLIGHT_FIELDS_PERSON = [
-    'birth_date_text', 'birth_place',
+    #'birth_date_text',
+    'birth_place',
     'family_name', 'given_name', 'other_names', 'preferred_name',
     'preexclusion_residence_city', 'postexclusion_residence_city',
 ]
@@ -286,8 +289,8 @@ class Person(Record):
     suffix_name                   = dsl.Text()
     jp_name                       = dsl.Text()
     preferred_name                = dsl.Text()
-    birth_date                    = dsl.Date()
-    birth_date_text               = dsl.Text()
+    #birth_date                    = dsl.Date()
+    #birth_date_text               = dsl.Text()
     birth_year                    = dsl.Keyword()
     birth_place                   = dsl.Text()
     death_date                    = dsl.Date()
