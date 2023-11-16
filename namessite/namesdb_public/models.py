@@ -374,6 +374,24 @@ class Person(Record):
         """
         return Record.field_values(Person, field, es, index)
 
+    @staticmethod
+    def locations(nr_id, request):
+        """Get PersonLocations for Person"""
+        es = docstore.Docstore(
+            INDEX_PREFIX, settings.DOCSTORE_HOST, settings
+        ).es
+        s = dsl.Search(using=es, index='namespersonlocation')
+        s = s.filter('term', **{'person_id': nr_id})
+        response = s.execute()
+        locations = [
+            {
+                fieldname: getattr(hit, fieldname, '')
+                for fieldname in FIELDS_PERSONLOCATION
+            }
+            for hit in response
+        ]
+        return locations
+
 
 FIELDS_PERSONFACILITY = [
     'person_id', 'facility_id', 'entry_date', 'exit_date',

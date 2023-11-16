@@ -102,6 +102,25 @@
     {% endfor %}
   </ul>
 
+  <h3>PersonLocations</h3>
+  {{ locations }}<br/>
+  <table border="1">
+    {% for location in locations %}
+    <tr>
+      <td>{{ location.id }}</td>
+      <td>{{ location.entry_date }}</td>
+      <td>{{ location.exit_date }}</td>
+      <td>{{ location.address }}</td>
+      <td>
+        <a href="https://www.openstreetmap.org/#map=14/{{ location.lat }}/{{ location.lng }}">
+          {{ location.lat }},{{ location.lng }}
+        </a>
+      </td>
+      <td>{{ location.facility_id }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
   <p float="right">
     <a href="{{ api_url }}">API</a>
   </p>
