@@ -374,6 +374,24 @@ class Person(Record):
         """
         return Record.field_values(Person, field, es, index)
 
+    @staticmethod
+    def locations(nr_id, request):
+        """Get PersonLocations for Person"""
+        es = docstore.Docstore(
+            INDEX_PREFIX, settings.DOCSTORE_HOST, settings
+        ).es
+        s = dsl.Search(using=es, index='namespersonlocation')
+        s = s.filter('term', **{'person_id': nr_id})
+        response = s.execute()
+        locations = [
+            {
+                fieldname: getattr(hit, fieldname, '')
+                for fieldname in FIELDS_PERSONLOCATION
+            }
+            for hit in response
+        ]
+        return locations
+
 
 FIELDS_PERSONFACILITY = [
     'person_id', 'facility_id', 'entry_date', 'exit_date',
@@ -396,37 +414,51 @@ class PersonFacility(Record):
 
 
 FIELDS_PERSONLOCATION = [
+    'id',
     'person_id',
-    'location',
-    'geo_lat',
-    'geo_lng',
+    'person_name',
+    'location_id',
+    'lat',
+    'lng',
+    'address',
+    'address_components',
+    'facility_id',
+    'facility_name',
     'entry_date',
     'exit_date',
-    'sort_start',
-    'sort_end',
-    'facility_id',
-    'facility_address',
-    'notes',
 ]
 
 class PersonLocation(Record):
     """PersonLocation record model
     """
+    id                            = dsl.Keyword()
     person_id                     = dsl.Keyword()
-    location                      = dsl.Text()
-    geo_lat                       = dsl.Text()
-    geo_lng                       = dsl.Text()
+    person_name                   = dsl.Text()  # Person.preferred_name
+    location_id                   = dsl.Keyword()
+    lat                           = dsl.Text()
+    lng                           = dsl.Text()
+    facility_id                   = dsl.Keyword()
+    facility_name                 = dsl.Text()
+    address                       = dsl.Text()
+    address_components            = dsl.Text()
     entry_date                    = dsl.Date()
     exit_date                     = dsl.Date()
-    sort_start                    = dsl.Date()
-    sort_end                      = dsl.Date()
-    facility_id                   = dsl.Keyword()
-    facility_address              = dsl.Text()
-    notes                         = dsl.Text()
 
     class Index:
         model = 'personlocation'
         name = f'{INDEX_PREFIX}personlocation'
+
+    @staticmethod
+    def from_dict(id_, data):
+        """
+        @param id_: str
+        @param data: dict
+        @returns: PersonLocation
+        """
+        # exclude private fields
+        record = Record.from_dict(PersonLocation, FIELDS_PERSONLOCATION, id_, data)
+        assemble_fulltext(record, FIELDS_PERSONLOCATION)
+        return record
 
 
 FIELDS_FARPAGE = [

@@ -42,9 +42,10 @@ def wrarecords(request, template_name='namesdb_public/wrarecords.html'):
     return search_ui(request, 'wrarecord')
 
 def person(request, naan, noid, template_name='namesdb_public/person.html'):
-    object_id = '/'.join([naan, noid])
+    nr_id = '/'.join([naan, noid])
     return render(request, template_name, {
-        'record': models.Person.get(object_id, request),
+        'record': models.Person.get(nr_id, request),
+        'locations': models.Person.locations(nr_id, request),
         'api_url': reverse('namespub-api-person', args=[naan,noid]),
     })
 
