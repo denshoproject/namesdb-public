@@ -911,6 +911,7 @@ ELASTICSEARCH_CLASSES_BY_MODEL = {
     'farrecord': FarRecord,
     'wrarecord': WraRecord,
     'farpage': FarPage,
+    'personlocation': PersonLocation,
 }
 
 FIELDS_BY_MODEL = {
@@ -918,6 +919,7 @@ FIELDS_BY_MODEL = {
     'farrecord': FIELDS_FARRECORD,
     'wrarecord': FIELDS_WRARECORD,
     'farpage': FIELDS_FARPAGE,
+    'personlocation': FIELDS_PERSONLOCATION,
 }
 
 SEARCH_INCLUDE_FIELDS_PERSON    = [x for x in FIELDS_PERSON    if (x not in SEARCH_EXCLUDE_FIELDS_PERSON)]
