@@ -8,6 +8,7 @@ import sys
 
 logging.getLogger("elasticsearch").setLevel(logging.WARNING)
 
+import requests
 from django.conf import settings
 from rest_framework.exceptions import NotFound
 from rest_framework.reverse import reverse
@@ -391,6 +392,19 @@ class Person(Record):
             for hit in response
         ]
         return locations
+
+    @staticmethod
+    def ddr_objects(nr_id, request):
+        """Get DDR objects for Person"""
+        naan,noid = nr_id.split('/')
+        # TODO cache this
+        url = f"{settings.DDR_API_URL}/api/0.2/nrid/{naan}/{noid}/"
+        r = requests.get(url, timeout=settings.DDR_API_TIMEOUT)
+        if r.status_code == 200:
+            data = r.json()
+            if data.get('objects') and len(data['objects']):
+                return url,r.status_code,data['objects']
+        return url,r.status_code,[]
 
 
 FIELDS_PERSONFACILITY = [

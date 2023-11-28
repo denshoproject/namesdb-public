@@ -121,6 +121,31 @@
     {% endfor %}
   </table>
 
+  <h3>
+    DDR Objects
+    {{ ddrobjects_url }}
+    {{ ddrobjects_status }}
+  </h3>
+  <table border="0">
+    {% for object in ddrobjects %}
+    <tr>
+      <td valign="top" style="padding-bottom:10px;">
+        <a href="{{ object.links.html }}">
+          <img src="{{ object.links.img }}" width="100" alt="{{ object.id }}" />
+        </a>
+      </td>
+      <td valign="top">
+        <b><a href="{{ object.links.html }}">
+          ({{ object.id }}) -
+          {{ object.title }}
+        </a></b>
+        <br />
+        {{ object.description | truncatewords_html:32 }}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+
   <p float="right">
     <a href="{{ api_url }}">API</a>
   </p>
