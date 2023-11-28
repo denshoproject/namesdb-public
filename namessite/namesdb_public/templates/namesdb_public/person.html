@@ -103,15 +103,14 @@
   </ul>
 
   <h3>PersonLocations</h3>
-  {{ locations }}<br/>
-  <table border="1">
+  <table>
     {% for location in locations %}
     <tr>
-      <td>{{ location.id }}</td>
-      <td>{{ location.entry_date }}</td>
-      <td>{{ location.exit_date }}</td>
-      <td>{{ location.address }}</td>
-      <td>
+      <td style="padding-right:20px;">{{ location.id }}</td>
+      <td style="padding-right:20px;">{{ location.entry_date }}</td>
+      <td style="padding-right:20px;">{{ location.exit_date }}</td>
+      <td style="padding-right:20px;">{{ location.address }}</td>
+      <td style="padding-right:20px;">
         <a href="https://www.openstreetmap.org/#map=14/{{ location.lat }}/{{ location.lng }}">
           {{ location.lat }},{{ location.lng }}
         </a>
