@@ -399,7 +399,13 @@ class Person(Record):
         naan,noid = nr_id.split('/')
         # TODO cache this
         url = f"{settings.DDR_API_URL}/api/0.2/nrid/{naan}/{noid}/"
-        r = requests.get(url, timeout=settings.DDR_API_TIMEOUT)
+        if settings.DDR_API_USERNAME and settings.DDR_API_PASSWORD:
+            r = requests.get(
+                url, timeout=settings.DDR_API_TIMEOUT,
+                auth=(settings.DDR_API_USERNAME, settings.DDR_API_PASSWORD)
+            )
+        else:
+            r = requests.get(url, timeout=settings.DDR_API_TIMEOUT)
         if r.status_code == 200:
             data = r.json()
             if data.get('objects') and len(data['objects']):
