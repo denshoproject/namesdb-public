@@ -43,11 +43,12 @@ def wrarecords(request, template_name='namesdb_public/wrarecords.html'):
 
 def person(request, naan, noid, template_name='namesdb_public/person.html'):
     nr_id = '/'.join([naan, noid])
-    ddrobjects_url,ddrobjects_status,ddrobjects = models.Person.ddr_objects(nr_id, request)
+    ddrobjects_ui_url,ddrobjects_api_url,ddrobjects_status,ddrobjects = models.Person.ddr_objects(nr_id, request)
     return render(request, template_name, {
         'record': models.Person.get(nr_id, request),
         'locations': models.Person.locations(nr_id, request),
-        'ddrobjects_url': ddrobjects_url,
+        'ddrobjects_ui_url': ddrobjects_ui_url,
+        'ddrobjects_api_url': ddrobjects_api_url,
         'ddrobjects_status': ddrobjects_status,
         'ddrobjects': ddrobjects,
         'api_url': reverse('namespub-api-person', args=[naan,noid]),
