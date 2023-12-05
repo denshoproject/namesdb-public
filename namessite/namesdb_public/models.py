@@ -217,7 +217,6 @@ FIELDS_PERSON = [
 
 SEARCH_EXCLUDE_FIELDS_PERSON = [
     'birth_date', 'death_date', 'timestamp',  # can't search fulltext on dates
-    'birth_year',
     'facilities', 'far_records', 'wra_records', 'family',  # relation pointers
     'facility_id',
 ]
@@ -225,6 +224,7 @@ SEARCH_EXCLUDE_FIELDS_PERSON = [
 INCLUDE_FIELDS_PERSON = [
     'nr_id', 'family_name', 'given_name', 'given_name_alt', 'other_names',
     'middle_name', 'prefix_name', 'suffix_name', 'jp_name', 'preferred_name',
+    'birth_year',
     'wra_family_no', 'wra_individual_no', 'alien_registration_no',
     'preexclusion_residence_city', 'postexclusion_residence_city',
     'exclusion_order_title',
