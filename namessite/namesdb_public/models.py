@@ -8,6 +8,7 @@ import sys
 
 logging.getLogger("elasticsearch").setLevel(logging.WARNING)
 
+import requests
 from django.conf import settings
 from rest_framework.exceptions import NotFound
 from rest_framework.reverse import reverse
@@ -216,7 +217,6 @@ FIELDS_PERSON = [
 
 SEARCH_EXCLUDE_FIELDS_PERSON = [
     'birth_date', 'death_date', 'timestamp',  # can't search fulltext on dates
-    'birth_year',
     'facilities', 'far_records', 'wra_records', 'family',  # relation pointers
     'facility_id',
 ]
@@ -224,6 +224,7 @@ SEARCH_EXCLUDE_FIELDS_PERSON = [
 INCLUDE_FIELDS_PERSON = [
     'nr_id', 'family_name', 'given_name', 'given_name_alt', 'other_names',
     'middle_name', 'prefix_name', 'suffix_name', 'jp_name', 'preferred_name',
+    'birth_year',
     'wra_family_no', 'wra_individual_no', 'alien_registration_no',
     'preexclusion_residence_city', 'postexclusion_residence_city',
     'exclusion_order_title',
@@ -251,6 +252,33 @@ HIGHLIGHT_FIELDS_PERSON = [
     'birth_place',
     'family_name', 'given_name', 'other_names', 'preferred_name',
     'preexclusion_residence_city', 'postexclusion_residence_city',
+]
+
+DISPLAY_FIELDS_PERSON = [
+    'family_name',
+    'given_name',
+    'given_name_alt',
+    'other_names',
+    'middle_name',
+    'prefix_name',
+    'suffix_name',
+    'jp_name',
+    'preferred_name',
+    'birth_year',
+    'birth_place',
+    'death_date',
+    'death_date_text',
+    'wra_family_no',
+    'wra_individual_no',
+    'citizenship',
+    'alien_registration_no',
+    'gender',
+    'preexclusion_residence_city',
+    'preexclusion_residence_state',
+    'postexclusion_residence_city',
+    'postexclusion_residence_state',
+    'exclusion_order_title',
+    'exclusion_order_id',
 ]
 
 class ListFacility(dsl.InnerDoc):
@@ -391,6 +419,26 @@ class Person(Record):
             for hit in response
         ]
         return locations
+
+    @staticmethod
+    def ddr_objects(nr_id, request):
+        """Get DDR objects for Person"""
+        naan,noid = nr_id.split('/')
+        # TODO cache this
+        ui_url = f"{settings.DDR_UI_URL}/nrid/{naan}/{noid}/"
+        api_url = f"{settings.DDR_API_URL}/api/0.2/nrid/{naan}/{noid}/"
+        if settings.DDR_API_USERNAME and settings.DDR_API_PASSWORD:
+            r = requests.get(
+                api_url, timeout=settings.DDR_API_TIMEOUT,
+                auth=(settings.DDR_API_USERNAME, settings.DDR_API_PASSWORD)
+            )
+        else:
+            r = requests.get(api_url, timeout=settings.DDR_API_TIMEOUT)
+        if r.status_code == 200:
+            data = r.json()
+            if data.get('objects') and len(data['objects']):
+                return ui_url,api_url,r.status_code,data['objects']
+        return ui_url,api_url,r.status_code,[]
 
 
 FIELDS_PERSONFACILITY = [
