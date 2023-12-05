@@ -101,14 +101,16 @@
     <tr>
       <td style="padding-right:20px;">{{ location.entry_date }}</td>
       <td style="padding-right:20px;">{{ location.exit_date }}</td>
-      <td style="padding-right:20px;">{{ location.address }}</td>
       <td style="padding-right:20px;">
         <a href="https://www.openstreetmap.org/#map=14/{{ location.lat }}/{{ location.lng }}">
           {{ location.lat }},{{ location.lng }}
         </a>
       </td>
+      <td style="padding-right:20px;">{{ location.address }}</td>
       <td>
-        {{ location.facility_id }}
+        <a href="{{ location.facility_id }}">
+          {{ location.facility_name }}
+        </a>
       </td>
     </tr>
     {% endfor %}
