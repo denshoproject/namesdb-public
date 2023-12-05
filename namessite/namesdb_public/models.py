@@ -254,6 +254,33 @@ HIGHLIGHT_FIELDS_PERSON = [
     'preexclusion_residence_city', 'postexclusion_residence_city',
 ]
 
+DISPLAY_FIELDS_PERSON = [
+    'family_name',
+    'given_name',
+    'given_name_alt',
+    'other_names',
+    'middle_name',
+    'prefix_name',
+    'suffix_name',
+    'jp_name',
+    'preferred_name',
+    'birth_year',
+    'birth_place',
+    'death_date',
+    'death_date_text',
+    'wra_family_no',
+    'wra_individual_no',
+    'citizenship',
+    'alien_registration_no',
+    'gender',
+    'preexclusion_residence_city',
+    'preexclusion_residence_state',
+    'postexclusion_residence_city',
+    'postexclusion_residence_state',
+    'exclusion_order_title',
+    'exclusion_order_id',
+]
+
 class ListFacility(dsl.InnerDoc):
     person_nr_id = dsl.Keyword()
     facility_id = dsl.Keyword()
