@@ -420,6 +420,9 @@ class Person(Record):
             }
             for hit in response
         ]
+        # replace slashes in location.id NRIDs
+        for location in locations:
+            location['divid'] = f"m{location['id'].replace('/','')}"  #.replace('_','')
         return locations
 
     @staticmethod
