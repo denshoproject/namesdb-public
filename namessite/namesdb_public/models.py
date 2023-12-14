@@ -410,6 +410,8 @@ class Person(Record):
         ).es
         s = dsl.Search(using=es, index='namespersonlocation')
         s = s.filter('term', **{'person_id': nr_id})
+        # records with blank entry_dates (i.e. preexclusion) sort first
+        s = s.sort('exit_date', 'entry_date')
         response = s.execute()
         locations = [
             {
