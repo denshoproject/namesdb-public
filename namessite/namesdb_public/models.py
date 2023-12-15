@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from datetime import datetime
+from http import HTTPStatus
 import json
 import logging
 logger = logging.getLogger(__name__)
@@ -439,7 +440,7 @@ class Person(Record):
             )
         else:
             r = requests.get(api_url, timeout=settings.DDR_API_TIMEOUT)
-        if r.status_code == 200:
+        if r.status_code == HTTPStatus.OK:
             data = r.json()
             if data.get('objects') and len(data['objects']):
                 return ui_url,api_url,r.status_code,data['objects']
