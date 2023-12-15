@@ -9,7 +9,7 @@ import sys
 
 logging.getLogger("elasticsearch").setLevel(logging.WARNING)
 
-import requests
+import httpx
 from django.conf import settings
 from rest_framework.exceptions import NotFound
 from rest_framework.reverse import reverse
@@ -434,12 +434,12 @@ class Person(Record):
         ui_url = f"{settings.DDR_UI_URL}/nrid/{naan}/{noid}/"
         api_url = f"{settings.DDR_API_URL}/api/0.2/nrid/{naan}/{noid}/"
         if settings.DDR_API_USERNAME and settings.DDR_API_PASSWORD:
-            r = requests.get(
+            r = httpx.get(
                 api_url, timeout=settings.DDR_API_TIMEOUT,
                 auth=(settings.DDR_API_USERNAME, settings.DDR_API_PASSWORD)
             )
         else:
-            r = requests.get(api_url, timeout=settings.DDR_API_TIMEOUT)
+            r = httpx.get(api_url, timeout=settings.DDR_API_TIMEOUT)
         if r.status_code == HTTPStatus.OK:
             data = r.json()
             if data.get('objects') and len(data['objects']):
