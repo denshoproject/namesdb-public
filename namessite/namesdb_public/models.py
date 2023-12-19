@@ -478,6 +478,18 @@ class Facility(dsl.Document):
         return f'<Facility {self.facility_id}>'
 
     @staticmethod
+    def facilities():
+        return [
+            hit.to_dict()
+            for hit in docstore.elasticsearch_dsl.Search(
+                    using=docstore.Docstore(
+                        INDEX_PREFIX, settings.DOCSTORE_HOST, settings
+                    ).es,
+                    index=f'{INDEX_PREFIX}facility'
+            ).scan()
+        ]
+
+    @staticmethod
     def from_dict(id_, data):
         """
         @param id_: str
