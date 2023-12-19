@@ -447,6 +447,61 @@ class Person(Record):
         return ui_url,api_url,r.status_code,[]
 
 
+FIELDS_FACILITY = [
+    'facility_id',
+    'facility_type',
+    'title',
+    'location_label',
+    'location_lat',
+    'location_lng',
+    'tgn_id',
+    'encyc_title',
+    'encyc_url',
+]
+
+class Facility(dsl.Document):
+    facility_id    = dsl.Keyword()
+    facility_type  = dsl.Keyword()
+    title          = dsl.Text()
+    location_label = dsl.Keyword()
+    location_lat   = dsl.Float()
+    location_lng   = dsl.Float()
+    tgn_id         = dsl.Keyword()
+    encyc_title    = dsl.Text()
+    encyc_url      = dsl.Keyword()
+
+    class Index:
+        model = 'facility'
+        name = f'{INDEX_PREFIX}facility'
+
+    def __repr__(self):
+        return f'<Facility {self.facility_id}>'
+
+    @staticmethod
+    def facilities():
+        return [
+            hit.to_dict()
+            for hit in docstore.elasticsearch_dsl.Search(
+                    using=docstore.Docstore(
+                        INDEX_PREFIX, settings.DOCSTORE_HOST, settings
+                    ).es,
+                    index=f'{INDEX_PREFIX}facility'
+            ).scan()
+        ]
+
+    @staticmethod
+    def from_dict(id_, data):
+        """
+        @param id_: str
+        @param data: dict
+        @returns: Facility
+        """
+        # exclude private fields
+        record = Record.from_dict(Facility, FIELDS_FACILITY, id_, data)
+        assemble_fulltext(record, FIELDS_FACILITY)
+        return record
+
+
 FIELDS_PERSONFACILITY = [
     'person_id', 'facility_id', 'entry_date', 'exit_date',
 ]
