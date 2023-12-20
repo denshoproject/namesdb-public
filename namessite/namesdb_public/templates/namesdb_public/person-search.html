@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% load bootstrap_pagination namesdb_public_tags %}
+
+
+{% block title %}Names Database{% endblock %}
+
+
+{% block breadcrumbs %}{{ block.super }}
+<li><a href="{% url "namespub-index" %}">Names Database</a></li>
+{% if model %}
+<li>{{ model }}</li>
+{% else %}
+<li>Search</li>
+{% endif %}
+{% endblock breadcrumbs %}
+
+
+{% block content %}
+<section class="container">
+
+<h2>
+  <a href="{% url "namespub-index" %}">Names Registry</a>
+  - {{ model }}
+</h2>
+
+<ul>
+{% for kwarg in kwargs %}
+  <li>
+    <b>{{ kwarg.0 }}:</b>
+    {{ kwarg.1 }}
+  </li>
+{% endfor %}
+</ul>
+
+<table border="1" width="100%">
+<form name="search" action="" method="get">
+  <tr>
+    <td width="40%" valign="top">
+
+      <table>
+        {# form.as_table #}
+
+        <tr>
+          <td>
+            form.fulltext
+          </td>
+          <td>
+            {{ form.fulltext }}
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            preexclusion_residence_state,city
+          </td>
+          <td>
+{{ form.preexclusion_residence_state }}
+{{ form.preexclusion_residence_city }}
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            form.facility_id
+          </td>
+          <td>
+{{ form.facility_id }}
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            postexclusion_residence_state,city
+          </td>
+          <td>
+{{ form.postexclusion_residence_state }}
+{{ form.postexclusion_residence_city }}
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            form.gender
+          </td>
+          <td>
+{{ form.gender }}
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            form.birth_year
+          </td>
+          <td>
+{{ form.birth_year }}
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            form.citizenship
+          </td>
+          <td>
+{{ form.citizenship }}
+          </td>
+        </tr>
+
+
+      </table>
+
+    </td>
+    <td valign="top">
+
+{{ form.query }}
+
+<input type="submit" value="submit" />
+
+{% if paginator.object_list %}
+  <div>
+    {{ paginator.count }} items<br/>
+  </div>
+{% endif %}
+
+</div><!-- .querymeta -->
+
+{% if paginator.object_list %}
+
+{% if paginator.num_pages > 1 %}
+{% bootstrap_paginate page %}
+{% endif %}
+
+<div id="records">
+{% for record in page.object_list %}
+{% record record %}
+{% endfor %}
+</div><!-- #records -->
+
+{% endif %}{# page.object_list #}
+
+{% if body %}
+<pre>{{ body }}</pre>
+{% endif %}
+
+    </td>
+  </tr>
+</form>
+</table>
+
+<p float="right">
+  <a href="{{ api_url }}">API</a>
+</p>
+
+</section><!-- .container -->
+{% endblock content %}

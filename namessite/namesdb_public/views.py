@@ -84,7 +84,9 @@ def farpage(request, facility_id, far_page, template_name='namesdb_public/farpag
     })
 
 def search_ui(request, model=None):
+    template = 'namesdb_public/search.html'
     if model == 'person':
+        template = 'namesdb_public/person-search.html'
         search_models = ['namesperson']
         params_allowlist = models.SEARCH_INCLUDE_FIELDS_PERSON
         search_include_fields = models.SEARCH_INCLUDE_FIELDS_PERSON
@@ -169,7 +171,7 @@ def search_ui(request, model=None):
     else:
         context['form'] = forms.SearchForm()
 
-    return render(request, 'namesdb_public/search.html', context)
+    return render(request, template, context)
 
 def internal_url(request, path, query=None):
     """Internal version of reversed URL
