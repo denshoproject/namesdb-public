@@ -1,17 +1,1 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <link rel="stylesheet" href="style.css">
-    <title>{% block title %}My amazing site{% endblock %}</title>
-    {% block css %}{% endblock %}
-</head>
-
-<body>
-    <div id="content">
-        {% block content %}{% endblock %}
-    </div>
-
-{% block js %}{% endblock %}
-
-</body>
-</html>
+{% extends "ui/base.html" %}
