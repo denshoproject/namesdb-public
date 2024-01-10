@@ -49,6 +49,7 @@
     <li>
       <a href="{{ record.links.html }}">
         {{ record.preferred_name }}
+        {% if record.birth_year %}({{ record.birth_year }}){% endif %}
       </a>
     </li>
     {% endfor %}

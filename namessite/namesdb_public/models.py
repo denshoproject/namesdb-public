@@ -367,12 +367,18 @@ class Person(Record):
         assemble_fulltext(record, fieldnames)
         record.family = []
         if data.get('family'):
+            # family, sorted by birth_year
             record.family = [
                 {
-                    'nr_id':         person['nr_id'],
-                    'preferred_name': person['preferred_name'],
+                    'nr_id':             person['nr_id'],
+                    'preferred_name':    person['preferred_name'],
+                    'birth_year':        person['birth_year'],
+                    'wra_individual_no': person['wra_individual_no'],
+                    'gender':            person['gender'],
                 }
-                for person in data['family']
+                for person in sorted(
+                        data['family'], key=lambda d: d.get('birth_year')
+                )
             ]
         # add fields to ease filtering by birth_year and facilities
         if data.get('birth_date'):
