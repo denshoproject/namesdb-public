@@ -436,10 +436,14 @@ class Person(Record):
         if settings.DDR_API_USERNAME and settings.DDR_API_PASSWORD:
             r = httpx.get(
                 api_url, timeout=settings.DDR_API_TIMEOUT,
-                auth=(settings.DDR_API_USERNAME, settings.DDR_API_PASSWORD)
+                auth=(settings.DDR_API_USERNAME, settings.DDR_API_PASSWORD),
+                follow_redirects=True
             )
         else:
-            r = httpx.get(api_url, timeout=settings.DDR_API_TIMEOUT)
+            r = httpx.get(
+                api_url, timeout=settings.DDR_API_TIMEOUT,
+                follow_redirects=True
+            )
         if r.status_code == HTTPStatus.OK:
             data = r.json()
             if data.get('objects') and len(data['objects']):
