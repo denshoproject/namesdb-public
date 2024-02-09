@@ -213,13 +213,12 @@ FIELDS_PERSON = [
     'preexclusion_residence_state', 'postexclusion_residence_city',
     'postexclusion_residence_state', 'exclusion_order_title',
     'exclusion_order_id', 'timestamp',
-    'facilities', 'facility_id', 'far_records', 'wra_records',
+    'far_records', 'wra_records',
 ]
 
 SEARCH_EXCLUDE_FIELDS_PERSON = [
     'birth_date', 'death_date', 'timestamp',  # can't search fulltext on dates
-    'facilities', 'far_records', 'wra_records', 'family',  # relation pointers
-    'facility_id',
+    'far_records', 'wra_records', 'family',  # relation pointers
 ]
 
 INCLUDE_FIELDS_PERSON = [
@@ -239,7 +238,6 @@ AGG_FIELDS_PERSON = {
     'citizenship': 'citizenship',
     'gender': 'gender',
     'birth_year': 'birth_year',
-    'facility_id': 'facility_id',
     'preexclusion_residence_city': 'preexclusion_residence_city',
     'preexclusion_residence_state': 'preexclusion_residence_state',
     'postexclusion_residence_city': 'postexclusion_residence_city',
@@ -281,12 +279,6 @@ DISPLAY_FIELDS_PERSON = [
     'exclusion_order_title',
     'exclusion_order_id',
 ]
-
-class ListFacility(dsl.InnerDoc):
-    person_nr_id = dsl.Keyword()
-    facility_id = dsl.Keyword()
-    entry_date = dsl.Date()
-    exit_date = dsl.Date()
 
 class ListFarRecord(dsl.InnerDoc):
     far_record_id = dsl.Keyword()
@@ -336,8 +328,6 @@ class Person(Record):
     exclusion_order_title         = dsl.Keyword()
     exclusion_order_id            = dsl.Keyword()
     timestamp                     = dsl.Date()
-    facilities                    = dsl.Nested(ListFacility)
-    facility_id                   = dsl.Keyword(multi=True)
     far_records                   = dsl.Nested(ListFarRecord)
     wra_records                   = dsl.Nested(ListWraRecord)
     family                        = dsl.Nested(ListFamily)
@@ -383,8 +373,6 @@ class Person(Record):
         # add fields to ease filtering by birth_year and facilities
         if data.get('birth_date'):
             record.birth_year = data['birth_date'].year
-        if data.get('facilities'):
-            record.facility_id = [f['facility_id'] for f in data['facilities']]
         # remove redacted fields
         for fieldname in EXCLUDE_FIELDS_PERSON:
             if hasattr(record, fieldname):
@@ -510,26 +498,6 @@ class Facility(dsl.Document):
         record = Record.from_dict(Facility, FIELDS_FACILITY, id_, data)
         assemble_fulltext(record, FIELDS_FACILITY)
         return record
-
-
-FIELDS_PERSONFACILITY = [
-    'person_id', 'facility_id', 'entry_date', 'exit_date',
-]
-
-class PersonFacility(Record):
-    """PersonFacility record model
-    """
-    person_id                     = dsl.Keyword()
-    facility_id                   = dsl.Keyword()
-    entry_date                    = dsl.Date()
-    exit_date                     = dsl.Date()
-    
-    class Index:
-        model = 'personfacility'
-        name = f'{INDEX_PREFIX}personfacility'
-    
-    def __repr__(self):
-        return f'<PersonFacility {self.person_id},{self.facility_id}>'
 
 
 FIELDS_PERSONLOCATION = [
