@@ -23,18 +23,9 @@ from . import models
 #)['_source']
 # TODO should not be hard-coded - move to ddr-vocabs?
 FORMS_CHOICES = {
-    'facility-choices': [
-        ('4-amache', 'Amache'),
-        ('3-gilariver', 'Gila River'),
-        ('5-heartmountain', 'Heart Mountain'),
-        ('6-jerome', 'Jerome'),
-        ('7-manzanar', 'Manzanar'),
-        ('8-minidoka', 'Minidoka'),
-        ('2-poston', 'Poston'),
-        ('9-rohwer', 'Rohwer'),
-        ('1-topaz', 'Topaz'),
-        ('10-tulelake', 'Tule Lake'),
-    ]
+    'facility_id-choices': [
+        (f['facility_id'], f['title']) for f in models.Facility.facilities()
+    ],
 }
 FORMS_CHOICES_DEFAULT = {
     'facility': [

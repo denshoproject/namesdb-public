@@ -42,9 +42,16 @@ def wrarecords(request, template_name='namesdb_public/wrarecords.html'):
     return search_ui(request, 'wrarecord')
 
 def person(request, naan, noid, template_name='namesdb_public/person.html'):
-    object_id = '/'.join([naan, noid])
+    nr_id = '/'.join([naan, noid])
+    ddrobjects_ui_url,ddrobjects_api_url,ddrobjects_status,ddrobjects = models.Person.ddr_objects(nr_id, request)
     return render(request, template_name, {
-        'record': models.Person.get(object_id, request),
+        'display_fields_person': models.DISPLAY_FIELDS_PERSON,
+        'record': models.Person.get(nr_id, request),
+        'locations': models.Person.locations(nr_id, request),
+        'ddrobjects_ui_url': ddrobjects_ui_url,
+        'ddrobjects_api_url': ddrobjects_api_url,
+        'ddrobjects_status': ddrobjects_status,
+        'ddrobjects': ddrobjects,
         'api_url': reverse('namespub-api-person', args=[naan,noid]),
     })
 
@@ -77,7 +84,9 @@ def farpage(request, facility_id, far_page, template_name='namesdb_public/farpag
     })
 
 def search_ui(request, model=None):
+    template = 'namesdb_public/search.html'
     if model == 'person':
+        template = 'namesdb_public/person-search.html'
         search_models = ['namesperson']
         params_allowlist = models.SEARCH_INCLUDE_FIELDS_PERSON
         search_include_fields = models.SEARCH_INCLUDE_FIELDS_PERSON
@@ -126,6 +135,17 @@ def search_ui(request, model=None):
             #highlight_fields=highlight_fields,
             wildcards=False,
         )
+        # filter on denormalized values for birth_date and PersonFacility
+        # TODO integrate into elastictools.search.prepare or hard-code
+        if model == 'person':
+            if 'birth_year' in params.keys():
+                searcher.s = searcher.s.filter(
+                    'term', **{'birth_year': params['birth_year']}
+                )
+            if 'facility_id' in params.keys():
+                searcher.s = searcher.s.filter(
+                    'term', **{'facility_id': params['facility_id']}
+                )
         limit,offset = _limit_offset(request)
         results = searcher.execute(limit, offset)
         paginator = Paginator(
@@ -151,7 +171,7 @@ def search_ui(request, model=None):
     else:
         context['form'] = forms.SearchForm()
 
-    return render(request, 'namesdb_public/search.html', context)
+    return render(request, template, context)
 
 def internal_url(request, path, query=None):
     """Internal version of reversed URL

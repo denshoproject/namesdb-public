@@ -38,7 +38,76 @@
     <td width="40%" valign="top">
 
       <table>
-        {{ form.as_table }}
+        {# form.as_table #}
+
+        <tr>
+          <td>
+            form.fulltext
+          </td>
+          <td>
+            {{ form.fulltext }}
+          </td>
+        </tr>
+
+{% if searching %}
+        <tr>
+          <td>
+            preexclusion_residence_state,city
+          </td>
+          <td>
+{{ form.preexclusion_residence_state }}
+{{ form.preexclusion_residence_city }}
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            form.facility_id
+          </td>
+          <td>
+{{ form.facility_id }}
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            postexclusion_residence_state,city
+          </td>
+          <td>
+{{ form.postexclusion_residence_state }}
+{{ form.postexclusion_residence_city }}
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            form.gender
+          </td>
+          <td>
+{{ form.gender }}
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            form.birth_year
+          </td>
+          <td>
+{{ form.birth_year }}
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            form.citizenship
+          </td>
+          <td>
+{{ form.citizenship }}
+          </td>
+        </tr>
+{% endif %}{# searching #}
+
+
       </table>
 
     </td>

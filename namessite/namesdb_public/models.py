@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from datetime import datetime
+from http import HTTPStatus
 import json
 import logging
 logger = logging.getLogger(__name__)
@@ -8,6 +9,7 @@ import sys
 
 logging.getLogger("elasticsearch").setLevel(logging.WARNING)
 
+import httpx
 from django.conf import settings
 from rest_framework.exceptions import NotFound
 from rest_framework.reverse import reverse
@@ -205,33 +207,37 @@ def assemble_fulltext(record, fieldnames):
 FIELDS_PERSON = [
     'nr_id', 'family_name', 'given_name', 'given_name_alt', 'other_names',
     'middle_name', 'prefix_name', 'suffix_name', 'jp_name', 'preferred_name',
-    'birth_date', 'birth_date_text', 'birth_place', 'death_date',
+    'birth_date', 'birth_date_text', 'birth_year', 'birth_place', 'death_date',
     'death_date_text', 'wra_family_no', 'wra_individual_no', 'citizenship',
     'alien_registration_no', 'gender', 'preexclusion_residence_city',
     'preexclusion_residence_state', 'postexclusion_residence_city',
     'postexclusion_residence_state', 'exclusion_order_title',
     'exclusion_order_id', 'timestamp',
-    'facilities', 'far_records', 'wra_records',
+    'far_records', 'wra_records',
 ]
 
 SEARCH_EXCLUDE_FIELDS_PERSON = [
     'birth_date', 'death_date', 'timestamp',  # can't search fulltext on dates
-    'facilities', 'far_records', 'wra_records', 'family',  # relation pointers
+    'far_records', 'wra_records', 'family',  # relation pointers
 ]
 
 INCLUDE_FIELDS_PERSON = [
     'nr_id', 'family_name', 'given_name', 'given_name_alt', 'other_names',
     'middle_name', 'prefix_name', 'suffix_name', 'jp_name', 'preferred_name',
+    'birth_year',
     'wra_family_no', 'wra_individual_no', 'alien_registration_no',
     'preexclusion_residence_city', 'postexclusion_residence_city',
     'exclusion_order_title',
 ]
 
-EXCLUDE_FIELDS_PERSON = []
+EXCLUDE_FIELDS_PERSON = [
+    'birth_date', 'birth_date_text',
+]
 
 AGG_FIELDS_PERSON = {
     'citizenship': 'citizenship',
     'gender': 'gender',
+    'birth_year': 'birth_year',
     'preexclusion_residence_city': 'preexclusion_residence_city',
     'preexclusion_residence_state': 'preexclusion_residence_state',
     'postexclusion_residence_city': 'postexclusion_residence_city',
@@ -241,16 +247,38 @@ AGG_FIELDS_PERSON = {
 }
 
 HIGHLIGHT_FIELDS_PERSON = [
-    'birth_date_text', 'birth_place',
+    #'birth_date_text',
+    'birth_place',
     'family_name', 'given_name', 'other_names', 'preferred_name',
     'preexclusion_residence_city', 'postexclusion_residence_city',
 ]
 
-class ListFacility(dsl.InnerDoc):
-    person_nr_id = dsl.Keyword()
-    facility_id = dsl.Keyword()
-    entry_date = dsl.Date()
-    exit_date = dsl.Date()
+DISPLAY_FIELDS_PERSON = [
+    'family_name',
+    'given_name',
+    'given_name_alt',
+    'other_names',
+    'middle_name',
+    'prefix_name',
+    'suffix_name',
+    'jp_name',
+    'preferred_name',
+    'birth_year',
+    'birth_place',
+    'death_date',
+    'death_date_text',
+    'wra_family_no',
+    'wra_individual_no',
+    'citizenship',
+    'alien_registration_no',
+    'gender',
+    'preexclusion_residence_city',
+    'preexclusion_residence_state',
+    'postexclusion_residence_city',
+    'postexclusion_residence_state',
+    'exclusion_order_title',
+    'exclusion_order_id',
+]
 
 class ListFarRecord(dsl.InnerDoc):
     far_record_id = dsl.Keyword()
@@ -282,8 +310,9 @@ class Person(Record):
     suffix_name                   = dsl.Text()
     jp_name                       = dsl.Text()
     preferred_name                = dsl.Text()
-    birth_date                    = dsl.Date()
-    birth_date_text               = dsl.Text()
+    #birth_date                    = dsl.Date()
+    #birth_date_text               = dsl.Text()
+    birth_year                    = dsl.Keyword()
     birth_place                   = dsl.Text()
     death_date                    = dsl.Date()
     death_date_text               = dsl.Text()
@@ -299,7 +328,6 @@ class Person(Record):
     exclusion_order_title         = dsl.Keyword()
     exclusion_order_id            = dsl.Keyword()
     timestamp                     = dsl.Date()
-    facilities                    = dsl.Nested(ListFacility)
     far_records                   = dsl.Nested(ListFarRecord)
     wra_records                   = dsl.Nested(ListWraRecord)
     family                        = dsl.Nested(ListFamily)
@@ -324,20 +352,31 @@ class Person(Record):
         @returns: Person
         """
         # exclude private fields
-        fieldnames = [
-            f for f in FIELDS_PERSON if f not in EXCLUDE_FIELDS_PERSON
-        ]
+        fieldnames = [f for f in FIELDS_PERSON]
         record = Record.from_dict(Person, fieldnames, nr_id, data)
         assemble_fulltext(record, fieldnames)
         record.family = []
         if data.get('family'):
+            # family, sorted by birth_year
             record.family = [
                 {
-                    'nr_id':         person['nr_id'],
-                    'preferred_name': person['preferred_name'],
+                    'nr_id':             person['nr_id'],
+                    'preferred_name':    person['preferred_name'],
+                    'birth_year':        person['birth_year'],
+                    'wra_individual_no': person['wra_individual_no'],
+                    'gender':            person['gender'],
                 }
-                for person in data['family']
+                for person in sorted(
+                        data['family'], key=lambda d: d.get('birth_year')
+                )
             ]
+        # add fields to ease filtering by birth_year and facilities
+        if data.get('birth_date'):
+            record.birth_year = data['birth_date'].year
+        # remove redacted fields
+        for fieldname in EXCLUDE_FIELDS_PERSON:
+            if hasattr(record, fieldname):
+               delattr(record, fieldname)
         return record
     
     @staticmethod
@@ -358,59 +397,155 @@ class Person(Record):
         """
         return Record.field_values(Person, field, es, index)
 
+    @staticmethod
+    def locations(nr_id, request):
+        """Get PersonLocations for Person"""
+        es = docstore.Docstore(
+            INDEX_PREFIX, settings.DOCSTORE_HOST, settings
+        ).es
+        s = dsl.Search(using=es, index='namespersonlocation')
+        s = s.filter('term', **{'person_id': nr_id})
+        # records with blank entry_dates (i.e. preexclusion) sort first
+        s = s.sort('exit_date', 'entry_date')
+        response = s.execute()
+        locations = [
+            {
+                fieldname: getattr(hit, fieldname, '')
+                for fieldname in FIELDS_PERSONLOCATION
+            }
+            for hit in response
+        ]
+        # replace slashes in location.id NRIDs
+        for location in locations:
+            location['divid'] = f"m{location['id'].replace('/','')}"  #.replace('_','')
+        return locations
 
-FIELDS_PERSONFACILITY = [
-    'person_id', 'facility_id', 'entry_date', 'exit_date',
+    @staticmethod
+    def ddr_objects(nr_id, request):
+        """Get DDR objects for Person"""
+        naan,noid = nr_id.split('/')
+        # TODO cache this
+        ui_url = f"{settings.DDR_UI_URL}/nrid/{naan}/{noid}/"
+        api_url = f"{settings.DDR_API_URL}/api/0.2/nrid/{naan}/{noid}/"
+        if settings.DDR_API_USERNAME and settings.DDR_API_PASSWORD:
+            r = httpx.get(
+                api_url, timeout=settings.DDR_API_TIMEOUT,
+                auth=(settings.DDR_API_USERNAME, settings.DDR_API_PASSWORD),
+                follow_redirects=True
+            )
+        else:
+            r = httpx.get(
+                api_url, timeout=settings.DDR_API_TIMEOUT,
+                follow_redirects=True
+            )
+        if r.status_code == HTTPStatus.OK:
+            data = r.json()
+            if data.get('objects') and len(data['objects']):
+                return ui_url,api_url,r.status_code,data['objects']
+        return ui_url,api_url,r.status_code,[]
+
+
+FIELDS_FACILITY = [
+    'facility_id',
+    'facility_type',
+    'title',
+    'location_label',
+    'location_lat',
+    'location_lng',
+    'tgn_id',
+    'encyc_title',
+    'encyc_url',
 ]
 
-class PersonFacility(Record):
-    """PersonFacility record model
-    """
-    person_id                     = dsl.Keyword()
-    facility_id                   = dsl.Keyword()
-    entry_date                    = dsl.Date()
-    exit_date                     = dsl.Date()
-    
+class Facility(dsl.Document):
+    facility_id    = dsl.Keyword()
+    facility_type  = dsl.Keyword()
+    title          = dsl.Text()
+    location_label = dsl.Keyword()
+    location_lat   = dsl.Float()
+    location_lng   = dsl.Float()
+    tgn_id         = dsl.Keyword()
+    encyc_title    = dsl.Text()
+    encyc_url      = dsl.Keyword()
+
     class Index:
-        model = 'personfacility'
-        name = f'{INDEX_PREFIX}personfacility'
-    
+        model = 'facility'
+        name = f'{INDEX_PREFIX}facility'
+
     def __repr__(self):
-        return f'<PersonFacility {self.person_id},{self.facility_id}>'
+        return f'<Facility {self.facility_id}>'
+
+    @staticmethod
+    def facilities():
+        return [
+            hit.to_dict()
+            for hit in docstore.elasticsearch_dsl.Search(
+                    using=docstore.Docstore(
+                        INDEX_PREFIX, settings.DOCSTORE_HOST, settings
+                    ).es,
+                    index=f'{INDEX_PREFIX}facility'
+            ).scan()
+        ]
+
+    @staticmethod
+    def from_dict(id_, data):
+        """
+        @param id_: str
+        @param data: dict
+        @returns: Facility
+        """
+        # exclude private fields
+        record = Record.from_dict(Facility, FIELDS_FACILITY, id_, data)
+        assemble_fulltext(record, FIELDS_FACILITY)
+        return record
 
 
 FIELDS_PERSONLOCATION = [
+    'id',
     'person_id',
-    'location',
-    'geo_lat',
-    'geo_lng',
+    'person_name',
+    'location_id',
+    'lat',
+    'lng',
+    'address',
+    'address_components',
+    'facility_id',
+    'facility_name',
     'entry_date',
     'exit_date',
-    'sort_start',
-    'sort_end',
-    'facility_id',
-    'facility_address',
-    'notes',
 ]
 
 class PersonLocation(Record):
     """PersonLocation record model
     """
+    id                            = dsl.Keyword()
     person_id                     = dsl.Keyword()
-    location                      = dsl.Text()
-    geo_lat                       = dsl.Text()
-    geo_lng                       = dsl.Text()
+    person_name                   = dsl.Text()  # Person.preferred_name
+    location_id                   = dsl.Keyword()
+    lat                           = dsl.Text()
+    lng                           = dsl.Text()
+    facility_id                   = dsl.Keyword()
+    facility_name                 = dsl.Text()
+    address                       = dsl.Text()
+    address_components            = dsl.Text()
     entry_date                    = dsl.Date()
     exit_date                     = dsl.Date()
-    sort_start                    = dsl.Date()
-    sort_end                      = dsl.Date()
-    facility_id                   = dsl.Keyword()
-    facility_address              = dsl.Text()
-    notes                         = dsl.Text()
 
     class Index:
         model = 'personlocation'
         name = f'{INDEX_PREFIX}personlocation'
+
+    @staticmethod
+    def from_dict(id_, data):
+        """
+        @param id_: str
+        @param data: dict
+        @returns: PersonLocation
+        """
+        # exclude private fields
+        record = Record.from_dict(PersonLocation, FIELDS_PERSONLOCATION, id_, data)
+        assemble_fulltext(record, FIELDS_PERSONLOCATION)
+        return record
 
 
 FIELDS_FARPAGE = [
@@ -546,15 +681,18 @@ FIELDS_FARRECORD = [
 
 SEARCH_EXCLUDE_FIELDS_FARRECORD = [
     'timestamp', # can't fulltext search on dates
+    'date_of_birth',
     'person',  # relation pointers
 ]
 
 INCLUDE_FIELDS_FARRECORD = [
     'far_record_id', 'family_number', 'far_line_id', 'last_name', 'first_name',
-    'other_names', 'date_of_birth', 'original_notes',
+    'other_names', 'original_notes',
     ]
 
-EXCLUDE_FIELDS_FARRECORD = []
+EXCLUDE_FIELDS_FARRECORD = [
+    'date_of_birth',
+]
 
 AGG_FIELDS_FARRECORD = {
     'facility': 'facility',
@@ -605,7 +743,7 @@ class FarRecord(Record):
     last_name               = dsl.Text()
     first_name              = dsl.Text()
     other_names             = dsl.Text()
-    date_of_birth           = dsl.Keyword()
+    #date_of_birth           = dsl.Keyword()
     year_of_birth           = dsl.Keyword()
     sex                     = dsl.Keyword()
     marital_status          = dsl.Keyword()
@@ -655,11 +793,8 @@ class FarRecord(Record):
         @returns: FarRecord
         """
         # exclude private fields
-        fieldnames = [
-            f for f in FIELDS_FARRECORD if f not in EXCLUDE_FIELDS_FARRECORD
-        ]
-        record = Record.from_dict(FarRecord, fieldnames, far_record_id, data)
-        assemble_fulltext(record, fieldnames)
+        record = Record.from_dict(FarRecord, FIELDS_FARRECORD, far_record_id, data)
+        assemble_fulltext(record, FIELDS_FARRECORD)
         record.family = []
         if data.get('family'):
             record.family = [
@@ -670,6 +805,10 @@ class FarRecord(Record):
                 }
                 for person in data['family']
             ]
+        # remove redacted fields
+        for fieldname in EXCLUDE_FIELDS_FARRECORD:
+            if hasattr(record, fieldname):
+               delattr(record, fieldname)
         return record
     
     @staticmethod
@@ -859,6 +998,7 @@ ELASTICSEARCH_CLASSES_BY_MODEL = {
     'farrecord': FarRecord,
     'wrarecord': WraRecord,
     'farpage': FarPage,
+    'personlocation': PersonLocation,
 }
 
 FIELDS_BY_MODEL = {
@@ -866,6 +1006,7 @@ FIELDS_BY_MODEL = {
     'farrecord': FIELDS_FARRECORD,
     'wrarecord': FIELDS_WRARECORD,
     'farpage': FIELDS_FARPAGE,
+    'personlocation': FIELDS_PERSONLOCATION,
 }
 
 SEARCH_INCLUDE_FIELDS_PERSON    = [x for x in FIELDS_PERSON    if (x not in SEARCH_EXCLUDE_FIELDS_PERSON)]
