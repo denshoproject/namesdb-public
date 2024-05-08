@@ -22,11 +22,14 @@ from . import models
 #    id='forms-choices'
 #)['_source']
 # TODO should not be hard-coded - move to ddr-vocabs?
-FORMS_CHOICES = {
-    'facility_id-choices': [
-        (f['facility_id'], f['title']) for f in models.Facility.facilities()
-    ],
-}
+if settings.DOCSTORE_ENABLED:
+    FORMS_CHOICES = {
+        'facility_id-choices': [
+            (f['facility_id'], f['title']) for f in models.Facility.facilities()
+        ],
+    }
+else:
+    FORMS_CHOICES = {'facility_id-choices': []}
 FORMS_CHOICES_DEFAULT = {
     'facility': [
         ('', 'All Camps'),

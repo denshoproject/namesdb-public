@@ -211,13 +211,15 @@ FIELDS_PERSON = [
     'death_date_text', 'wra_family_no', 'wra_individual_no', 'citizenship',
     'alien_registration_no', 'gender', 'preexclusion_residence_city',
     'preexclusion_residence_state', 'postexclusion_residence_city',
-    'postexclusion_residence_state', 'exclusion_order_title',
-    'exclusion_order_id', 'timestamp',
+    'postexclusion_residence_state', 'exclusion_order_title', 'exclusion_order_id',
+    'bio_notes', 'admin_notes', 'lcnaf_url', 'snac_url', 'wikidata_url',
+    'timestamp',
     'far_records', 'wra_records',
 ]
 
 SEARCH_EXCLUDE_FIELDS_PERSON = [
     'birth_date', 'death_date', 'timestamp',  # can't search fulltext on dates
+    'admin_notes',
     'far_records', 'wra_records', 'family',  # relation pointers
 ]
 
@@ -231,7 +233,7 @@ INCLUDE_FIELDS_PERSON = [
 ]
 
 EXCLUDE_FIELDS_PERSON = [
-    'birth_date', 'birth_date_text',
+    'birth_date', 'birth_date_text', 'admin_notes',
 ]
 
 AGG_FIELDS_PERSON = {
@@ -278,6 +280,10 @@ DISPLAY_FIELDS_PERSON = [
     'postexclusion_residence_state',
     'exclusion_order_title',
     'exclusion_order_id',
+    'bio_notes',
+    'lcnaf_url',
+    'snac_url',
+    'wikidata_url',
 ]
 
 class ListFarRecord(dsl.InnerDoc):
@@ -327,6 +333,11 @@ class Person(Record):
     postexclusion_residence_state = dsl.Keyword()
     exclusion_order_title         = dsl.Keyword()
     exclusion_order_id            = dsl.Keyword()
+    bio_notes                     = dsl.Text()
+    #admin_notes                   = dsl.Text()
+    lcnaf_url                     = dsl.Text()
+    snac_url                      = dsl.Text()
+    wikidata_url                  = dsl.Text()
     timestamp                     = dsl.Date()
     far_records                   = dsl.Nested(ListFarRecord)
     wra_records                   = dsl.Nested(ListWraRecord)
